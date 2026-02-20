@@ -426,27 +426,22 @@
         let currentPlanId = null;
 
         window.addEventListener('DOMContentLoaded', () => {
-            console.log('=== TRAINER APP DEBUG ===');
-            console.log('Trainer logged:', sessionStorage.getItem('trainer_logged_in'));
-            console.log('Clienti nel DB:', db.getAllClients().length);
-            console.log('========================');
-            
-            // ✅ NUOVO: Aggiungi event listener al pulsante "Nuovo Cliente"
+            // Aggiungi event listener al pulsante "Nuovo Cliente"
             const addClientBtn = document.querySelector('.add-client-btn');
             if (addClientBtn) {
-                console.log('✅ Pulsante "Nuovo Cliente" trovato, aggiungo event listener');
                 addClientBtn.addEventListener('click', function(e) {
-                    console.log('🔵 Click su "Nuovo Cliente" (event listener)');
                     e.preventDefault();
                     e.stopPropagation();
                     showAddClientModal();
                 });
-            } else {
-                console.warn('⚠️ Pulsante "Nuovo Cliente" non trovato');
             }
             
             if (sessionStorage.getItem('trainer_logged_in') === 'true') {
-                showMainApp();
+                if (db._ready) {
+                    showMainApp();
+                } else {
+                    document.addEventListener('db_ready', showMainApp, { once: true });
+                }
             }
         });
 
@@ -454,9 +449,19 @@
             event.preventDefault();
             if (document.getElementById('trainerPassword').value === TRAINER_PASSWORD) {
                 sessionStorage.setItem('trainer_logged_in', 'true');
-                showMainApp();
+                if (db._ready) {
+                    showMainApp();
+                } else {
+                    document.addEventListener('db_ready', showMainApp, { once: true });
+                    // Mostra messaggio di attesa
+                    document.getElementById('loginError').textContent = '⏳ Connessione in corso...';
+                    document.getElementById('loginError').style.display = 'block';
+                    document.getElementById('loginError').style.color = '#10b981';
+                }
             } else {
                 const errorEl = document.getElementById('loginError');
+                errorEl.style.color = '';
+                errorEl.textContent = '❌ Password non corretta';
                 errorEl.style.display = 'block';
                 setTimeout(() => errorEl.style.display = 'none', 3000);
             }
