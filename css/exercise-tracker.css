@@ -1,0 +1,212 @@
+/* ===== CURRENT EXERCISE TRACKER ===== */
+.current-exercise-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 3px solid var(--fucsia);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 40px rgba(255, 20, 147, 0.2);
+    text-align: center;
+    animation: slideIn 0.5s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.exercise-phase-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--fucsia), var(--arancio));
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(255, 20, 147, 0.3);
+}
+
+.current-exercise-visual {
+    margin: 20px 0;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.exercise-anatomical-image {
+    max-width: 100%;
+    max-height: 250px;
+    border-radius: 15px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    object-fit: contain;
+}
+
+.exercise-placeholder {
+    width: 200px;
+    height: 200px;
+    background: linear-gradient(135deg, rgba(255,20,147,0.1), rgba(255,140,0,0.1));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px dashed var(--fucsia);
+}
+
+.current-exercise-name {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--navy);
+    margin: 15px 0;
+    line-height: 1.3;
+    text-align: center;
+    word-wrap: break-word;
+    max-width: 100%;
+}
+
+.current-exercise-details {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin: 15px 0;
+    font-size: 16px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.current-exercise-details span {
+    background: var(--bg-light);
+    padding: 8px 16px;
+    border-radius: 10px;
+    border-left: 3px solid var(--cyan);
+}
+
+.exercise-progress-info {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+.btn-next-exercise {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    color: white !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    padding: 16px 32px !important;
+    border-radius: 12px !important;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+}
+
+.btn-next-exercise:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+}
+
+.btn-next-exercise:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Bottone Guarda Esercizio */
+.btn-watch-exercise {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 14px 28px;
+    border-radius: 12px;
+    text-decoration: none;
+    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.3);
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-watch-exercise:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(220, 38, 38, 0.4);
+}
+
+.btn-watch-exercise .btn-icon {
+    font-size: 24px;
+}
+
+.btn-watch-exercise .btn-text {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+/* Responsive Exercise Tracker */
+@media (max-width: 768px) {
+    .current-exercise-card {
+        padding: 20px;
+    }
+    
+    .current-exercise-name {
+        font-size: 22px;
+    }
+    
+    .current-exercise-visual {
+        min-height: 150px;
+    }
+    
+    .exercise-anatomical-image {
+        max-height: 180px;
+    }
+    
+    .exercise-placeholder {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .exercise-placeholder span {
+        font-size: 48px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .current-exercise-name {
+        font-size: 18px;
+    }
+    
+    .current-exercise-details {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .btn-next-exercise {
+        font-size: 16px !important;
+        padding: 14px 24px !important;
+    }
+    
+    .btn-watch-exercise {
+        font-size: 14px;
+        padding: 12px 24px;
+    }
+    
+    .btn-watch-exercise .btn-icon {
+        font-size: 20px;
+    }
+    
+    .btn-watch-exercise .btn-text {
+        font-size: 14px;
+    }
+}
