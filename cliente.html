@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Cliente - Alissa Casagrande</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/exercise-tracker.css">
+    <style>
+        /* Cliente-specific overrides */
+        .header { 
+            background: linear-gradient(135deg, var(--viola) 0%, var(--fucsia) 100%); 
+        }
+        
+        .welcome-section {
+            background: linear-gradient(135deg, var(--viola) 0%, var(--fucsia) 100%);
+            color: white;
+            padding: 40px 30px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(139, 127, 232, 0.3);
+        }
+        
+        .welcome-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .welcome-subtitle {
+            font-size: 16px;
+            opacity: 0.95;
+        }
+        
+        .workout-card-main {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+        
+        .workout-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 20px;
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--fucsia);
+        }
+        
+        .timer-display {
+            background: linear-gradient(135deg, var(--navy) 0%, #2C5AA0 100%);
+            color: white;
+            padding: 40px 20px;
+            border-radius: 20px;
+            text-align: center;
+            margin: 30px auto;
+            font-size: 72px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 12px 32px rgba(27, 59, 111, 0.4);
+            max-width: 100%;
+            word-break: break-all;
+        }
+        
+        @media (max-width: 768px) {
+            .timer-display {
+                font-size: 56px;
+                padding: 30px 15px;
+                margin: 20px auto;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .timer-display {
+                font-size: 42px;
+                padding: 25px 10px;
+                margin: 15px auto;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .timer-display {
+                font-size: 36px;
+                padding: 20px 10px;
+            }
+        }
+        
+        .timer-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-start-container {
+            text-align: center;
+            margin: 50px 0;
+        }
+        
+        .btn-start {
+            background: linear-gradient(135deg, var(--fucsia) 0%, var(--arancio) 100%);
+            font-size: 28px;
+            padding: 30px 70px;
+            box-shadow: 0 10px 30px rgba(255, 20, 147, 0.4);
+            animation: pulse-button 2s infinite;
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            max-width: 100%;
+            width: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .btn-start {
+                font-size: 22px;
+                padding: 24px 50px;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .btn-start {
+                font-size: 18px;
+                padding: 20px 40px;
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .btn-start {
+                font-size: 16px;
+                padding: 18px 30px;
+            }
+        }
+        
+        .btn-start:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 14px 40px rgba(255, 20, 147, 0.5);
+        }
+        
+        @keyframes pulse-button {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .btn-restart {
+            background: linear-gradient(135deg, #8B7FE8 0%, #6B5FD8 100%);
+            padding: 16px 32px;
+            font-size: 18px;
+        }
+        
+        .btn-video {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: white;
+            padding: 8px 16px;
+            font-size: 13px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .btn-video:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
+        }
+        
+        @media (max-width: 600px) {
+            .btn-video {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+        }
+        
+        .exercise-item {
+            padding: 15px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .exercise-item:last-child {
+            border-bottom: none;
+        }
+        
+        .exercise-name-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex: 1;
+        }
+        
+        .motivational-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .motivational-popup.active {
+            display: flex;
+        }
+        
+        .motivational-content {
+            background: linear-gradient(135deg, var(--fucsia) 0%, var(--arancio) 100%);
+            color: white;
+            padding: 60px 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: bounceIn 0.6s ease-out;
+        }
+        
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.3);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .motivational-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: rotate 2s ease-in-out infinite;
+        }
+        
+        @keyframes rotate {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(10deg); }
+        }
+        
+        .motivational-text {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .motivational-subtext {
+            font-size: 18px;
+            opacity: 0.95;
+        }
+        
+        /* Responsive Mobile */
+        @media (max-width: 768px) {
+            .welcome-section {
+                padding: 30px 20px;
+            }
+            
+            .welcome-title {
+                font-size: 26px;
+            }
+            
+            .welcome-subtitle {
+                font-size: 14px;
+            }
+            
+            .motivational-content {
+                padding: 40px 30px;
+            }
+            
+            .motivational-icon {
+                font-size: 60px;
+            }
+            
+            .motivational-text {
+                font-size: 24px;
+            }
+            
+            .motivational-subtext {
+                font-size: 16px;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .workout-card-main {
+                padding: 25px 15px;
+            }
+            
+            .workout-title {
+                font-size: 20px;
+            }
+            
+            .welcome-title {
+                font-size: 22px;
+            }
+            
+            .welcome-subtitle {
+                font-size: 13px;
+            }
+            
+            .motivational-content {
+                padding: 30px 20px;
+                max-width: 90%;
+            }
+            
+            .motivational-text {
+                font-size: 20px;
+            }
+            
+            .motivational-icon {
+                font-size: 50px;
+            }
+            
+            .card {
+                margin-bottom: 15px;
+            }
+            
+            .card h4 {
+                font-size: 16px !important;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .welcome-section {
+                padding: 20px 15px;
+            }
+            
+            .welcome-title {
+                font-size: 20px;
+            }
+        }
+    </style>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container" style="background: linear-gradient(135deg, #8B7FE8 0%, #ABA0F3 50%, #8B7FE8 100%);">
+        <div class="login-card">
+            <div class="login-logo"><img src="images/logo-alissa.png" alt="Alissa Casagrande" style="width: 120px; height: 120px; border-radius: 50%;"></div>
+            <h1 class="login-title">BODY & MIND REVOLUTION</h1>
+            <p class="login-subtitle">Alissa Casagrande - Personal Trainer<br>Transform Your Body & Mind</p>
+            
+            <div class="login-error" id="loginError" style="display: none; background: rgba(239, 68, 68, 0.1); color: #dc2626; padding: 12px; border-radius: 10px; margin-bottom: 20px; font-size: 14px;">
+                ❌ Nome e cognome non trovati nel sistema.<br>
+                <small style="font-size: 12px; opacity: 0.8;">Prova: "Maria Bianchi", "Luca Rossi" o "Sara Verde"</small>
+            </div>
+            
+            <form class="login-form" onsubmit="loginClient(event)">
+                <div class="form-group">
+                    <label class="form-label">Il Tuo Nome e Cognome</label>
+                    <input type="text" class="form-control" id="clientFullName" placeholder="Es: Maria Bianchi" required autocomplete="off">
+                </div>
+                <button type="submit" class="btn btn-fucsia btn-login" style="background: linear-gradient(135deg, var(--viola) 0%, #9575CD 100%);">
+                    🔓 ACCEDI ALLA TUA AREA
+                </button>
+            </form>
+
+            <div class="login-footer">
+                Inserisci il tuo nome e cognome come comunicato dal trainer
+                <br><br>
+                <button type="button" onclick="document.getElementById('importClientDataFile').click()" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; cursor: pointer; margin-top: 10px; font-weight: 600;">
+                    📥 Importa Dati dal Trainer (JSON)
+                </button>
+                <input type="file" id="importClientDataFile" accept=".json" style="display: none;" onchange="importClientData(event)">
+                <br>
+                <button type="button" onclick="document.getElementById('importCSVFile').click()" style="background: #0ea5e9; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; cursor: pointer; margin-top: 10px; font-weight: 600;">
+                    📊 Importa Scheda CSV
+                </button>
+                <input type="file" id="importCSVFile" accept=".csv" style="display: none;" onchange="importCSVData(event)">
+                <br>
+                <button type="button" onclick="resetDatabase()" style="background: #6b7280; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; cursor: pointer; margin-top: 10px;">
+                    🔄 Reset Database (se problemi login)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Motivational Popup -->
+    <div class="motivational-popup" id="motivationalPopup">
+        <div class="motivational-content">
+            <div class="motivational-icon">🎵</div>
+            <div class="motivational-text">Accendi la musica e partiamo!</div>
+            <div class="motivational-subtext">Preparati a dare il massimo! 💪</div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" style="display: none;">
+        <!-- Header Compatto -->
+        <header class="header">
+            <div class="header-content">
+                <span class="logo"><img src="images/logo-alissa.png" alt="Logo" style="width: 40px; height: 40px; border-radius: 50%;"></span>
+                <div class="header-title">
+                    <h1>ALISSA CASAGRANDE</h1>
+                    <p>Personal Trainer - Mental Coach | Body & Mind Revolution</p>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <button class="btn-header btn-logout" onclick="logoutClient()">🚪 Esci</button>
+            </div>
+        </header>
+
+        <!-- Main Container -->
+        <div style="max-width: 1200px; margin: 0 auto; padding: 30px 20px; width: 100%; box-sizing: border-box; overflow-x: hidden;">
+            <!-- Welcome Section -->
+            <div class="welcome-section">
+                <div class="welcome-title">Ciao! 👋</div>
+                <div class="welcome-subtitle">Sei pronta per la tua Rivoluzione Body & Mind oggi?</div>
+            </div>
+
+            <!-- Content -->
+            <div id="mainContent"></div>
+        </div>
+
+        <!-- Backup Footer -->
+        <div class="backup-footer" style="background: linear-gradient(135deg, rgba(139, 127, 232, 0.05) 0%, rgba(171, 160, 243, 0.05) 100%);">
+            <h3>💾 Gestione Dati Personali</h3>
+            <div class="backup-actions">
+                <button class="btn btn-fucsia" onclick="importWorkout()">📥 Importa Scheda JSON</button>
+                <button class="btn btn-info" onclick="document.getElementById('importCSVFileLogged').click()" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;">📊 Importa Scheda CSV</button>
+                <button class="btn btn-success" onclick="exportClientData()">💾 Esporta i Miei Dati</button>
+                <button class="btn btn-primary" onclick="importClientData()">📥 Importa Dati Completi</button>
+                <input type="file" id="workoutFileInput" accept=".json" style="display: none;" onchange="handleWorkoutImport(event)">
+                <input type="file" id="dataFileInput" accept=".json" style="display: none;" onchange="handleDataImport(event)">
+                <input type="file" id="importCSVFileLogged" accept=".csv" style="display: none;" onchange="importCSVDataLogged(event)">
+            </div>
+            <p style="margin-top: 15px; font-size: 13px; color: #6b7280;">
+                💡 <strong>Consiglio:</strong> Esporta i tuoi dati prima di cambiare telefono per non perdere lo storico
+            </p>
+        </div>
+    </div>
+
+    <!-- Modal Feedback -->
+    <div class="modal" id="feedbackModal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2 class="modal-title">📝 Feedback Allenamento</h2>
+            </div>
+
+            <form id="feedbackForm" class="feedback-form" style="background: var(--bg-light); padding: 25px; border-radius: 15px;">
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label" style="display: block; font-weight: 600; margin-bottom: 8px;">1. Come ti sei sentita durante l'allenamento?</label>
+                    <select class="form-control" name="feeling" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px;">
+                        <option value="">Seleziona...</option>
+                        <option value="ottimo">Ottimo, mi sono sentita benissimo</option>
+                        <option value="bene">Bene, faticoso ma positivo</option>
+                        <option value="faticoso">Molto faticoso</option>
+                        <option value="troppo_facile">Troppo facile, vorrei più sfida</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label">2. Quale parte è stata più difficile?</label>
+                    <input type="text" class="form-control" name="difficult_part" placeholder="Es: Plank, Squat, Circuito finale...">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label">3. La durata dell'allenamento è stata:</label>
+                    <select class="form-control" name="duration_adjustment">
+                        <option value="perfetta">Perfetta</option>
+                        <option value="troppo_lunga">Troppo lunga</option>
+                        <option value="troppo_corta">Troppo corta</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label">4. L'intensità degli esercizi è stata:</label>
+                    <select class="form-control" name="intensity_adjustment">
+                        <option value="giusta">Giusta</option>
+                        <option value="troppo_difficile">Troppo difficile</option>
+                        <option value="troppo_facile">Troppo facile</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label">5. Hai provato dolore o fastidio durante l'allenamento?</label>
+                    <input type="text" class="form-control" name="pain_discomfort" placeholder="Descrivi dove e quando (lascia vuoto se nessun dolore)">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label">6. Quali esercizi ti sono piaciuti di più?</label>
+                    <input type="text" class="form-control" name="favorite_exercises" placeholder="Es: Ponte glutei, Cat-Cow...">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label">7. Note aggiuntive per Alissa:</label>
+                    <textarea class="form-control" name="notes" placeholder="Qualsiasi altra cosa vuoi condividere..." style="resize: vertical; min-height: 80px;"></textarea>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-fucsia btn-large">💬 INVIA FEEDBACK</button>
+                    <button type="button" class="btn" onclick="closeModal('feedbackModal')">Annulla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/database.js"></script>
+    <script src="js/backup-manager.js"></script>
+    <script src="js/exercise-image-manager.js"></script>
+    <script src="js/exercise-youtube-manager.js"></script>
+
+    <script>
+        let CLIENT_ID = null;
+        let CLIENT_NAME = null;
+        let timerInterval = null;
+        let timerSeconds = 0;
+        let timerRunning = false;
+        let currentSession = null;
+        
+        // Exercise Tracking Variables
+        let currentWorkoutPlan = null;
+        let allExercises = [];
+        let currentExerciseIndex = 0;
+
+        window.addEventListener('DOMContentLoaded', function() {
+            // Verifica se c'è import automatico da URL (QR code)
+            const urlParams = new URLSearchParams(window.location.search);
+            const importData = urlParams.get('import');
+            
+            if (importData) {
+                console.log('Import automatico da QR code...');
+                console.log('🔍 Import data raw:', importData.substring(0, 100) + '...');
+                
+                try {
+                    // Decodifica base64
+                    const jsonString = decodeURIComponent(escape(atob(importData)));
+                    const data = JSON.parse(jsonString);
+                    
+                    console.log('📦 Dati decodificati:', data);
+                    
+                    // Importa i dati
+                    importClientDataFromObject(data);
+                    
+                    // Rimuovi parametro URL e ricarica
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    
+                    // Alert con nome cliente (supporta entrambi i formati)
+                    let clientName = '';
+                    if (data.client && data.client.name) {
+                        clientName = data.client.name;
+                    } else if (data.c && data.c.n) {
+                        clientName = data.c.n;
+                    } else {
+                        clientName = 'Cliente';
+                    }
+                    
+                    alert('✅ Dati importati con successo!\n\n👤 Cliente: ' + clientName + '\n\nPuoi ora accedere con il tuo nome e cognome.');
+                    
+                } catch (error) {
+                    console.error('❌ Errore import automatico:', error);
+                    console.error('Stack:', error.stack);
+                    alert('❌ Errore durante l\'importazione automatica dei dati.\n\nErrore: ' + error.message);
+                }
+            }
+            
+            const savedClientId = sessionStorage.getItem('client_id');
+            const savedClientName = sessionStorage.getItem('client_name');
+            if (savedClientId && savedClientName) {
+                CLIENT_ID = savedClientId;
+                CLIENT_NAME = savedClientName;
+                if (db._ready) {
+                    showMainApp();
+                } else {
+                    document.addEventListener('db_ready', showMainApp, { once: true });
+                }
+            }
+        });
+
+        function loginClient(event) {
+            event.preventDefault();
+            const fullName = document.getElementById('clientFullName').value;
+            
+            if (db._ready) {
+                _doLogin(fullName);
+            } else {
+                // Mostra attesa
+                const errorEl = document.getElementById('loginError');
+                errorEl.textContent = '⏳ Connessione in corso...';
+                errorEl.style.color = '#10b981';
+                errorEl.style.display = 'block';
+                document.addEventListener('db_ready', function() {
+                    errorEl.style.display = 'none';
+                    _doLogin(fullName);
+                }, { once: true });
+            }
+        }
+        
+        function _doLogin(fullName) {
+            console.log('Tentativo login con:', fullName);
+            console.log('Clienti disponibili:', db.getAllClients().map(c => c.name));
+            const client = db.authenticateClient(fullName);
+            console.log('Cliente trovato:', client);
+            
+            if (client) {
+                CLIENT_ID = client.id;
+                CLIENT_NAME = client.name;
+                sessionStorage.setItem('client_id', CLIENT_ID);
+                sessionStorage.setItem('client_name', CLIENT_NAME);
+                showMainApp();
+            } else {
+                const errorEl = document.getElementById('loginError');
+                errorEl.textContent = '❌ Nome non trovato. Controlla nome e cognome.';
+                errorEl.style.color = '';
+                errorEl.style.display = 'block';
+                setTimeout(() => errorEl.style.display = 'none', 4000);
+            }
+        }
+        
+        // ===== IMPORT DATI CLIENTE =====
+        async function importClientDataFromObject(data) {
+            // Gestisci formato ULTRA-LIGHT V2 (QR SOLO ID)
+            if (data.t === 'l' && data.v === '1') {
+                console.log('📥 Import QR ULTRA-MINIMALE V2 rilevato (solo ID)');
+                
+                // Se c'è solo plan.id, genera profilo e plan generico
+                let plans = [];
+                if (data.p && data.p.i) {
+                    console.log('📋 Plan ID ricevuto:', data.p.i, '- Creazione scheda generica');
+                    plans = [{
+                        id: data.p.i,
+                        client_id: data.c.i,
+                        title: 'Scheda Allenamento',
+                        status: 'attiva',
+                        duration: '45 minuti',
+                        objective: 'Allenamento',
+                        phases: {
+                            warmup: [],
+                            mobility: [],
+                            strength: [],
+                            circuit: [],
+                            cooldown: []
+                        },
+                        created_at: Date.now(),
+                        sent_at: Date.now()
+                    }];
+                    console.log('⚠️ NOTA: Scheda vuota creata. Il trainer deve inviare JSON completo per i dati reali.');
+                }
+                
+                // Converti formato ultra-light in formato standard
+                data = {
+                    version: '1.0',
+                    export_type: 'single_client',
+                    client: {
+                        id: data.c.i,
+                        name: data.c.n,
+                        email: '',
+                        created_at: Date.now(),
+                        is_active: true
+                    },
+                    profile: {
+                        client_id: data.c.i,
+                        age: 30,
+                        weight: 60,
+                        goal: 'Generale',
+                        level: 'Intermedio',
+                        frequency: 3,
+                        problems: [],
+                        equipment: [],
+                        custom_problems: ''
+                    },
+                    plans: plans,
+                    sessions: [],
+                    feedback: []
+                };
+                
+                console.log('✅ Formato ultra-minimale convertito:', data.client.name);
+            }
+            // Gestisci formato LIGHT (QR ultra-leggero)
+            else if (data.t === 'light' && data.v === '1.0') {
+                console.log('📥 Import QR Ultra-Leggero rilevato');
+                
+                // Converti formato light in formato standard
+                data = {
+                    version: data.v,
+                    export_type: 'single_client',
+                    client: {
+                        id: data.c.id,
+                        name: data.c.name,
+                        email: data.c.email,
+                        created_at: Date.now(),
+                        is_active: true
+                    },
+                    profile: {
+                        client_id: data.c.id,
+                        age: data.p.age,
+                        weight: data.p.weight,
+                        goal: data.p.goal,
+                        level: data.p.level,
+                        frequency: data.p.frequency,
+                        problems: data.p.problems,
+                        equipment: data.p.equipment,
+                        custom_problems: ''
+                    },
+                    plans: data.plan ? [{
+                        id: data.plan.id,
+                        client_id: data.c.id,
+                        title: data.plan.title,
+                        status: data.plan.status,
+                        duration: data.plan.duration,
+                        objective: data.plan.objective,
+                        phases: data.plan.phases,
+                        created_at: data.plan.created_at || Date.now(),
+                        sent_at: Date.now()
+                    }] : [],
+                    sessions: [],
+                    feedback: []
+                };
+                
+                console.log('✅ Formato convertito:', data.client.name);
+            }
+            
+            // Verifica che sia un export cliente valido
+            if (!data.export_type || data.export_type !== 'single_client') {
+                throw new Error('File non valido');
+            }
+            
+            if (!data.client || !data.profile) {
+                throw new Error('File incompleto');
+            }
+            
+            // Importa i dati su Firebase
+            const clients = db.getAllClients();
+            const profiles = db._cache ? (_cache.profiles||[]) : [];
+            const plans = db.getAllPlans();
+            const sessions = db.getAllSessions();
+            const feedback = db.getAllFeedback();
+            
+            // Verifica se il cliente esiste già
+            const existingClientIndex = clients.findIndex(function(c) { return c.id === data.client.id; });
+            const existingProfileIndex = profiles.findIndex(function(p) { return p.client_id === data.client.id; });
+            
+            if (existingClientIndex !== -1) {
+                await db.updateClient(data.client.id, data.client);
+                await db.updateProfile(data.client.id, data.profile);
+                const newPlans = plans.filter(function(p) { return p.client_id !== data.client.id; }).concat(data.plans || []);
+                const newSessions = sessions.filter(function(s) { return s.client_id !== data.client.id; }).concat(data.sessions || []);
+                const newFeedback = feedback.filter(function(f) { return f.client_id !== data.client.id; }).concat(data.feedback || []);
+                await saveCollection('plans', newPlans);
+                await saveCollection('sessions', newSessions);
+                await saveCollection('feedback', newFeedback);
+            } else {
+                await db.addClient(data.client);
+                await db.updateProfile(data.client.id, data.profile);
+                if (data.plans) for(const p of data.plans) await db.addPlan(p);
+                if (data.sessions) for(const s of data.sessions) await db.addSession(s);
+                if (data.feedback) for(const f of data.feedback) await db.addFeedback(f);
+            }
+        }
+        
+        async function importClientData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    // Usa la funzione helper
+                    importClientDataFromObject(data);
+                    
+                    alert('✅ Dati importati con successo!\n\n👤 Cliente: ' + data.client.name + '\n\nPuoi ora accedere con il tuo nome e cognome.');
+                    
+                    // Reset del form
+                    event.target.value = '';
+                    
+                } catch (error) {
+                    console.error('Errore import:', error);
+                    if (error.message === 'File non valido') {
+                        alert('❌ File non valido!\n\nQuesto non è un file di esportazione cliente.');
+                    } else if (error.message === 'File incompleto') {
+                        alert('❌ File incompleto!\n\nIl file non contiene tutti i dati necessari.');
+                    } else {
+                        alert('❌ Errore durante l\'importazione!\n\nIl file potrebbe essere corrotto.');
+                    }
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        async function importCSVData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const csvContent = e.target.result;
+                    const lines = csvContent.split('\n').filter(line => line.trim());
+                    
+                    if (lines.length < 2) {
+                        alert('❌ File CSV vuoto o non valido!');
+                        return;
+                    }
+                    
+                    console.log('📊 Import CSV:', lines.length, 'righe');
+                    
+                    // Parse CSV (skip header)
+                    const exercises = {
+                        warmup: [],
+                        mobility: [],
+                        strength: [],
+                        circuit: [],
+                        cooldown: []
+                    };
+                    
+                    const phaseMap = {
+                        'Riscaldamento': 'warmup',
+                        'Mobilità': 'mobility',
+                        'Rinforzo': 'strength',
+                        'Circuito': 'circuit',
+                        'Defaticamento': 'cooldown'
+                    };
+                    
+                    for (let i = 1; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (!line) continue;
+                        
+                        // Parse CSV line (handle quoted values)
+                        const matches = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+                        if (!matches || matches.length < 3) continue;
+                        
+                        const phase = matches[0].replace(/"/g, '').trim();
+                        const name = matches[1].replace(/"/g, '').trim();
+                        const reps = matches[2].replace(/"/g, '').trim();
+                        
+                        // Fix: usa includes() per gestire emoji e testo extra nel campo fase
+                        let phaseKey = null;
+                        for (const [keyword, key] of Object.entries(phaseMap)) {
+                            if (phase.includes(keyword)) {
+                                phaseKey = key;
+                                break;
+                            }
+                        }
+                        if (phaseKey && name) {
+                            exercises[phaseKey].push({
+                                name: name,
+                                reps: reps || '',
+                                duration: reps || ''
+                            });
+                        }
+                    }
+                    
+                    console.log('✅ Esercizi parsati:', exercises);
+                    
+                    // Chiedi nome cliente
+                    const clientName = prompt('📝 Inserisci il nome del cliente per questa scheda:');
+                    if (!clientName) {
+                        alert('❌ Import annullato - nome richiesto!');
+                        return;
+                    }
+                    
+                    // Crea cliente e scheda
+                    const clientId = 'csv-' + Date.now();
+                    const planId = 'plan-csv-' + Date.now();
+                    
+                    const newClient = {
+                        id: clientId,
+                        name: clientName,
+                        email: '',
+                        created_at: Date.now(),
+                        is_active: true
+                    };
+                    
+                    const newProfile = {
+                        client_id: clientId,
+                        age: 30,
+                        weight: 60,
+                        goal: 'Generale',
+                        level: 'Intermedio',
+                        frequency: 3,
+                        problems: [],
+                        equipment: [],
+                        custom_problems: ''
+                    };
+                    
+                    const newPlan = {
+                        id: planId,
+                        client_id: clientId,
+                        title: 'Scheda da CSV',
+                        status: 'attiva',
+                        duration: '45 minuti',
+                        objective: 'Allenamento',
+                        phases: exercises,
+                        created_at: Date.now(),
+                        sent_at: Date.now()
+                    };
+                    
+                    // Salva su Firebase tramite db
+                    await db.addClient(newClient);
+                    await db.updateProfile(newClient.id, newProfile);
+                    await db.addPlan(newPlan);
+                    
+                    console.log('✅ Dati CSV salvati su Firebase per cliente:', clientName);
+                    
+                    alert('✅ Scheda CSV importata con successo!\n\n👤 Cliente: ' + clientName + '\n\nAccesso automatico in corso...');
+                    
+                    // Reset del form
+                    event.target.value = '';
+                    
+                    // AUTO-LOGIN dopo import CSV
+                    CLIENT_ID = clientId;
+                    CLIENT_NAME = clientName;
+                    sessionStorage.setItem('client_id', clientId);
+                    sessionStorage.setItem('client_name', clientName);
+                    
+                    // Nascondi login, mostra app
+                    document.getElementById('loginScreen').style.display = 'none';
+                    document.getElementById('mainApp').style.display = 'block';
+                    
+                    // Carica dashboard
+                    loadClientData();
+                    
+                } catch (error) {
+                    console.error('❌ Errore import CSV:', error);
+                    alert('❌ Errore durante import CSV:\n\n' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        async function importCSVDataLogged(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Usa CLIENT_ID esistente
+            if (!CLIENT_ID) {
+                alert('❌ Errore: Non sei loggato!');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const csvContent = e.target.result;
+                    const lines = csvContent.split('\n').filter(line => line.trim());
+                    
+                    if (lines.length < 2) {
+                        alert('❌ File CSV vuoto o non valido!');
+                        return;
+                    }
+                    
+                    console.log('📊 Import CSV (loggato):', lines.length, 'righe');
+                    
+                    // Parse CSV (skip header)
+                    const exercises = {
+                        warmup: [],
+                        mobility: [],
+                        strength: [],
+                        circuit: [],
+                        cooldown: []
+                    };
+                    
+                    const phaseMap = {
+                        'Riscaldamento': 'warmup',
+                        'Mobilità': 'mobility',
+                        'Rinforzo': 'strength',
+                        'Circuito': 'circuit',
+                        'Defaticamento': 'cooldown'
+                    };
+                    
+                    for (let i = 1; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (!line) continue;
+                        
+                        // Parse CSV line (handle quoted values)
+                        const matches = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+                        if (!matches || matches.length < 3) continue;
+                        
+                        const phase = matches[0].replace(/"/g, '').trim();
+                        const name = matches[1].replace(/"/g, '').trim();
+                        const reps = matches[2].replace(/"/g, '').trim();
+                        
+                        // Fix: usa includes() per gestire emoji e testo extra nel campo fase
+                        let phaseKey = null;
+                        for (const [keyword, key] of Object.entries(phaseMap)) {
+                            if (phase.includes(keyword)) {
+                                phaseKey = key;
+                                break;
+                            }
+                        }
+                        if (phaseKey && name) {
+                            exercises[phaseKey].push({
+                                name: name,
+                                reps: reps || '',
+                                duration: reps || ''
+                            });
+                        }
+                    }
+                    
+                    console.log('✅ Esercizi parsati:', exercises);
+                    
+                    // Crea nuova scheda per cliente esistente
+                    const planId = 'plan-csv-' + Date.now();
+                    
+                    const newPlan = {
+                        id: planId,
+                        client_id: CLIENT_ID,
+                        title: 'Scheda da CSV',
+                        status: 'attiva',
+                        duration: '45 minuti',
+                        objective: 'Allenamento',
+                        phases: exercises,
+                        created_at: Date.now(),
+                        sent_at: Date.now()
+                    };
+                    
+                    // Prima disattiva tutte le altre schede attive
+                    const plans = db.getAllPlans();
+                    for (const p of plans) {
+                        if (p.client_id === CLIENT_ID && p.status === 'attiva') {
+                            await db.updatePlan(p.id, {status: 'inattiva'});
+                        }
+                    }
+                    
+                    // Aggiungi nuova scheda su Firebase
+                    await db.addPlan(newPlan);
+                    
+                    console.log('✅ Scheda CSV salvata per cliente:', CLIENT_NAME);
+                    console.log('📋 ID Scheda:', newPlan.id);
+                    console.log('📋 Client ID:', newPlan.client_id);
+                    console.log('📋 Status:', newPlan.status);
+                    console.log('📋 Tutte le schede dopo save:', db.getAllPlans());
+                    
+                    alert('✅ Scheda CSV importata con successo!\n\n📋 Scheda: "Scheda da CSV"\n\nRicarica la pagina per visualizzarla.');
+                    
+                    // Reset del form
+                    event.target.value = '';
+                    
+                    // Ricarica dashboard
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
+                    
+                } catch (error) {
+                    console.error('❌ Errore import CSV:', error);
+                    alert('❌ Errore durante import CSV:\n\n' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        async function resetDatabase() {
+            if (confirm('⚠️ Questo resetterà tutti i dati demo.\n\nVuoi continuare?')) {
+                await firebaseDB.ref('ptflow').remove();
+                sessionStorage.clear();
+                location.reload();
+            }
+        }
+
+        function logoutClient() {
+            if (confirm('Vuoi davvero uscire dalla tua area?')) {
+                sessionStorage.removeItem('client_id');
+                sessionStorage.removeItem('client_name');
+                CLIENT_ID = null;
+                CLIENT_NAME = null;
+                document.getElementById('mainApp').style.display = 'none';
+                document.getElementById('loginScreen').style.display = 'flex';
+                document.getElementById('clientFullName').value = '';
+            }
+        }
+
+        function showMainApp() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            loadClientData();
+        }
+
+        function loadClientData() {
+            console.log('=== LOAD CLIENT DATA ===');
+            console.log('Client ID:', CLIENT_ID);
+            console.log('📋 Tutte le schede nel DB:', db.getAllPlans());
+            console.log('📋 Schede per questo cliente:', db.getPlansByClientId(CLIENT_ID));
+            
+            const activePlan = db.getActivePlanByClientId(CLIENT_ID);
+            console.log('Scheda attiva trovata:', activePlan);
+            
+            const sessions = db.getSessionsByClientId(CLIENT_ID);
+            console.log('Sessioni trovate:', sessions.length);
+
+            let html = activePlan ? renderActiveWorkout(activePlan) : renderNoWorkout();
+            html += renderHistory(sessions);
+            html += `
+                <div class="info-box" style="background: rgba(0, 206, 209, 0.1); border-left: 4px solid var(--cyan); padding: 20px; border-radius: 10px; margin-top: 20px;">
+                    <strong>💡 Ricorda:</strong><br>
+                    Dopo ogni allenamento, compila il feedback per aiutare Alissa a creare schede sempre più personalizzate per te!
+                </div>
+            `;
+
+            document.getElementById('mainContent').innerHTML = html;
+            console.log('========================');
+        }
+
+        function renderActiveWorkout(plan) {
+            return `
+                <div class="workout-card-main">
+                    <h2 class="workout-title">La Tua Scheda Personalizzata</h2>
+
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h3 style="color: var(--navy); font-size: 22px; margin-bottom: 15px;">${plan.title}</h3>
+                        <span class="badge badge-cyan" style="font-size: 15px; padding: 10px 18px;">⏱️ ${plan.duration} min</span>
+                        <span class="badge badge-arancio" style="font-size: 15px; padding: 10px 18px;">📅 ${new Date(plan.approved_at || plan.generated_at).toLocaleDateString('it-IT')}</span>
+                    </div>
+
+                    ${renderWorkoutPhases(plan)}
+
+                    <div class="btn-start-container">
+                        <button class="btn btn-fucsia btn-large btn-start" onclick="startWorkout('${plan.id}')">
+                            ▶️ INIZIA LA TUA RIVOLUZIONE
+                        </button>
+                    </div>
+
+                    <!-- Timer Section -->
+                    <div id="timerSection" style="display: none; margin-top: 30px;">
+                        <!-- Current Exercise Display -->
+                        <div id="currentExerciseCard" class="current-exercise-card">
+                            <div class="exercise-phase-badge" id="exercisePhaseBadge">🔥 RISCALDAMENTO</div>
+                            <div class="current-exercise-visual">
+                                <img id="exerciseImage" src="" alt="Esercizio" class="exercise-anatomical-image" style="display: none;">
+                                <div id="exerciseImagePlaceholder" class="exercise-placeholder">
+                                    <span style="font-size: 48px;">💪</span>
+                                </div>
+                            </div>
+                            <h3 id="currentExerciseName" class="current-exercise-name">Preparati per iniziare!</h3>
+                            <div id="currentExerciseDetails" class="current-exercise-details">
+                                <span id="exerciseReps"></span>
+                                <span id="exerciseDuration"></span>
+                            </div>
+                            <div class="exercise-progress-info">
+                                <span id="exerciseProgressText">Esercizio 1 di 15</span>
+                            </div>
+                            <!-- Bottone Guarda Esercizio (YouTube/Immagine) -->
+                            <div id="exerciseMediaButton" style="display: none; margin-top: 15px;"></div>
+                        </div>
+
+                        <!-- Timer Display -->
+                        <div class="timer-display" id="timerDisplay">00:00</div>
+                        
+                        <!-- Timer Controls -->
+                        <div class="timer-controls">
+                            <button class="btn btn-next-exercise" onclick="nextExercise()" id="btnNextExercise">
+                                ➡️ Prossimo Esercizio
+                            </button>
+                            <button class="btn btn-pause" onclick="pauseTimer()">⏸️ Pausa</button>
+                            <button class="btn btn-restart" onclick="restartWorkout()">🔄 Ricomincia</button>
+                            <button class="btn btn-stop" onclick="stopWorkout()">⏹️ Completa Allenamento</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderWorkoutPhases(plan) {
+            let html = '';
+            
+            const sections = [
+                { title: '🔥 Riscaldamento', exercises: plan.phases.warmup, color: 'var(--arancio)' },
+                { title: '🧘 Mobilità', exercises: plan.phases.mobility, color: 'var(--cyan)' },
+                { title: (plan.phases.strength && plan.phases.strength.title) ? plan.phases.strength.title : '💪 Rinforzo', exercises: (plan.phases.strength && plan.phases.strength.exercises) ? plan.phases.strength.exercises : plan.phases.strength, color: 'var(--fucsia)' },
+                { title: (plan.phases.circuit && plan.phases.circuit.title) ? plan.phases.circuit.title : '🔥 Circuito', exercises: (plan.phases.circuit && plan.phases.circuit.exercises) ? plan.phases.circuit.exercises : plan.phases.circuit, color: 'var(--arancio)' },
+                { title: '❄️ Defaticamento', exercises: plan.phases.cooldown, color: 'var(--cyan)' }
+            ];
+
+            sections.forEach(section => {
+                if (section.exercises && section.exercises.length > 0) {
+                    html += `
+                        <div class="card">
+                            <h4 style="color: ${section.color}; font-size: 18px; font-weight: 700; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid ${section.color};">${section.title}</h4>
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                ${section.exercises.map(ex => {
+                                    // ✅ PRIORITÀ: YouTube > Immagine > Nessun link
+                                    const youtubeLink = exerciseYouTubeLinkManager.getLink(ex.name);
+                                    const imageLink = exerciseImageManager.getImage(ex.name);
+                                    
+                                    let mediaButton = '';
+                                    if (youtubeLink) {
+                                        mediaButton = `<a href="${youtubeLink}" target="_blank" rel="noopener noreferrer" class="btn-video" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: white; padding: 8px 16px; font-size: 13px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap;">▶️ Guarda l'Esercizio</a>`;
+                                    } else if (imageLink) {
+                                        mediaButton = `<a href="${imageLink}" target="_blank" rel="noopener noreferrer" class="btn-video" style="background: linear-gradient(135deg, #8B7FE8 0%, #7166D9 100%); color: white; padding: 8px 16px; font-size: 13px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap;">🖼️ Guarda l'Esercizio</a>`;
+                                    }
+                                    
+                                    return `
+                                        <div class="exercise-item" style="background: var(--bg-light); padding: 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                            <div class="exercise-info" style="flex: 1; min-width: 200px;">
+                                                <div class="exercise-name" style="font-weight: 600; color: var(--navy); margin-bottom: 4px;">${ex.name}</div>
+                                                <div class="exercise-details" style="font-size: 13px; color: #64748b;">
+                                                    ${ex.reps ? `<span>📊 ${ex.reps}</span>` : ''}
+                                                    ${ex.duration ? `<span>⏱️ ${ex.duration}</span>` : ''}
+                                                </div>
+                                            </div>
+                                            ${mediaButton}
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            return html;
+        }
+
+        function renderNoWorkout() {
+            return `
+                <div class="card" style="text-align: center; padding: 60px 40px;">
+                    <div style="font-size: 64px; margin-bottom: 20px;">📭</div>
+                    <h2 style="color: var(--navy); margin-bottom: 15px;">Nessuna Scheda Attiva</h2>
+                    <p style="color: #6b7280; font-size: 16px; margin-bottom: 30px;">
+                        Ancora nessuna scheda di allenamento. Alissa sta preparando il tuo programma personalizzato!
+                    </p>
+                    <button class="btn btn-fucsia btn-large" onclick="importWorkout()">
+                        📥 IMPORTA SCHEDA RICEVUTA
+                    </button>
+                </div>
+            `;
+        }
+
+        function renderHistory(sessions) {
+            if (sessions.length === 0) return '';
+            return `
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">📊 Storico Allenamenti</h2>
+                        <span class="badge badge-fucsia">${sessions.length} completati</span>
+                    </div>
+                    <ul style="list-style: none; padding: 0;">
+                        ${sessions.slice(-5).reverse().map(session => `
+                            <li style="padding: 15px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>${new Date(session.completed_at).toLocaleDateString('it-IT')}</strong>
+                                    <div style="font-size: 14px; color: #6b7280;">Durata: ${Math.floor(session.duration_actual / 60)} minuti</div>
+                                </div>
+                                <span style="font-size: 24px;">✅</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
+        function startWorkout(planId) {
+            // Get the workout plan
+            currentWorkoutPlan = db.getActivePlanByClientId(CLIENT_ID);
+            if (!currentWorkoutPlan) {
+                backupManager.showNotification('❌ Errore: scheda non trovata', 'error');
+                return;
+            }
+            
+            // Build complete exercise list
+            allExercises = [];
+            const sections = [
+                { title: '🔥 Riscaldamento', exercises: currentWorkoutPlan.phases.warmup, badge: '🔥 RISCALDAMENTO' },
+                { title: '🧘 Mobilità', exercises: currentWorkoutPlan.phases.mobility, badge: '🧘 MOBILITÀ' },
+                { title: '💪 Rinforzo', exercises: (currentWorkoutPlan.phases.strength && currentWorkoutPlan.phases.strength.exercises) ? currentWorkoutPlan.phases.strength.exercises : currentWorkoutPlan.phases.strength, badge: '💪 RINFORZO' },
+                { title: '🔥 Circuito', exercises: (currentWorkoutPlan.phases.circuit && currentWorkoutPlan.phases.circuit.exercises) ? currentWorkoutPlan.phases.circuit.exercises : currentWorkoutPlan.phases.circuit, badge: '🔥 CIRCUITO' },
+                { title: '❄️ Defaticamento', exercises: currentWorkoutPlan.phases.cooldown, badge: '❄️ DEFATICAMENTO' }
+            ];
+            
+            sections.forEach(section => {
+                if (section.exercises && section.exercises.length > 0) {
+                    section.exercises.forEach(ex => {
+                        allExercises.push({
+                            ...ex,
+                            phase: section.title,
+                            badge: section.badge
+                        });
+                    });
+                }
+            });
+            
+            currentExerciseIndex = 0;
+            
+            // Show motivational popup
+            document.getElementById('motivationalPopup').classList.add('active');
+            
+            setTimeout(() => {
+                document.getElementById('motivationalPopup').classList.remove('active');
+                
+                currentSession = {
+                    plan_id: planId,
+                    client_id: CLIENT_ID,
+                    started_at: Date.now()
+                };
+
+                document.getElementById('timerSection').style.display = 'block';
+                timerRunning = true;
+                timerSeconds = 0;
+                updateTimerDisplay();
+                updateCurrentExerciseDisplay();
+                
+                timerInterval = setInterval(() => {
+                    timerSeconds++;
+                    updateTimerDisplay();
+                }, 1000);
+
+                backupManager.showNotification('🔥 Allenamento iniziato! Dai il massimo!', 'success');
+                
+                // Scroll to timer
+                document.getElementById('timerSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 2500);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timerSeconds / 60);
+            const seconds = timerSeconds % 60;
+            document.getElementById('timerDisplay').textContent = 
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+        
+        function updateCurrentExerciseDisplay() {
+            if (!allExercises || allExercises.length === 0) return;
+            
+            const exercise = allExercises[currentExerciseIndex];
+            if (!exercise) return;
+            
+            // Update phase badge
+            document.getElementById('exercisePhaseBadge').textContent = exercise.badge || '💪 ALLENAMENTO';
+            
+            // Update exercise name
+            document.getElementById('currentExerciseName').textContent = exercise.name || 'Esercizio';
+            
+            // Update reps and duration
+            const repsEl = document.getElementById('exerciseReps');
+            const durationEl = document.getElementById('exerciseDuration');
+            repsEl.textContent = exercise.reps ? `📊 ${exercise.reps}` : '';
+            durationEl.textContent = exercise.duration ? `⏱️ ${exercise.duration}` : '';
+            
+            // Update progress
+            document.getElementById('exerciseProgressText').textContent = 
+                `Esercizio ${currentExerciseIndex + 1} di ${allExercises.length}`;
+            
+            // Load exercise image from storage
+            const imgEl = document.getElementById('exerciseImage');
+            const placeholderEl = document.getElementById('exerciseImagePlaceholder');
+            const savedImage = exerciseImageManager.getImage(exercise.name);
+            const savedYouTube = exerciseYouTubeLinkManager.getLink(exercise.name);
+            
+            // Priorità: YouTube > Immagine > Placeholder
+            if (savedYouTube) {
+                // Mostra solo emoji nel cerchio
+                imgEl.style.display = 'none';
+                placeholderEl.style.display = 'flex';
+                placeholderEl.innerHTML = `<span style="font-size: 48px;">🎥</span>`;
+                
+                // Crea bottone YouTube sotto il cerchio
+                const btnContainer = document.getElementById('exerciseMediaButton');
+                if (btnContainer) {
+                    btnContainer.innerHTML = `
+                        <a href="${savedYouTube}" target="_blank" rel="noopener noreferrer" 
+                           class="btn-watch-exercise">
+                            <span class="btn-icon">▶️</span>
+                            <span class="btn-text">Guarda Esercizio</span>
+                        </a>
+                    `;
+                    btnContainer.style.display = 'block';
+                }
+            } else if (savedImage) {
+                // Mostra immagine
+                imgEl.src = savedImage;
+                imgEl.style.display = 'block';
+                imgEl.style.cursor = 'pointer';
+                imgEl.onclick = () => {
+                    window.open(savedImage, '_blank');
+                };
+                placeholderEl.style.display = 'none';
+                
+                // Nascondi bottone
+                const btnContainer = document.getElementById('exerciseMediaButton');
+                if (btnContainer) btnContainer.style.display = 'none';
+            } else {
+                // Mostra placeholder default
+                imgEl.style.display = 'none';
+                placeholderEl.style.display = 'flex';
+                placeholderEl.innerHTML = `<span style="font-size: 48px;">💪</span>`;
+                
+                // Nascondi bottone
+                const btnContainer = document.getElementById('exerciseMediaButton');
+                if (btnContainer) btnContainer.style.display = 'none';
+            }
+            
+            // Disable next button on last exercise
+            const btnNext = document.getElementById('btnNextExercise');
+            if (currentExerciseIndex >= allExercises.length - 1) {
+                btnNext.disabled = true;
+                btnNext.textContent = '✅ Ultimo Esercizio';
+            } else {
+                btnNext.disabled = false;
+                btnNext.textContent = '➡️ Prossimo Esercizio';
+            }
+            
+            // Animation
+            const card = document.getElementById('currentExerciseCard');
+            card.style.animation = 'none';
+            setTimeout(() => {
+                card.style.animation = 'slideIn 0.5s ease';
+            }, 10);
+        }
+        
+        function nextExercise() {
+            if (currentExerciseIndex < allExercises.length - 1) {
+                currentExerciseIndex++;
+                updateCurrentExerciseDisplay();
+                backupManager.showNotification('✅ Prossimo esercizio!', 'success');
+            } else {
+                backupManager.showNotification('✅ Hai completato tutti gli esercizi!', 'success');
+            }
+        }
+
+        function pauseTimer() {
+            if (timerRunning) {
+                clearInterval(timerInterval);
+                timerRunning = false;
+                backupManager.showNotification('⏸️ Timer in pausa', 'info');
+            } else {
+                timerInterval = setInterval(() => {
+                    timerSeconds++;
+                    updateTimerDisplay();
+                }, 1000);
+                timerRunning = true;
+                backupManager.showNotification('▶️ Timer riavviato', 'success');
+            }
+        }
+
+        function restartWorkout() {
+            if (confirm('🔄 Vuoi ricominciare l\'allenamento da capo?')) {
+                clearInterval(timerInterval);
+                timerSeconds = 0;
+                timerRunning = true;
+                updateTimerDisplay();
+                
+                timerInterval = setInterval(() => {
+                    timerSeconds++;
+                    updateTimerDisplay();
+                }, 1000);
+                
+                backupManager.showNotification('🔄 Allenamento riavviato!', 'success');
+            }
+        }
+
+        function stopWorkout() {
+            if (!currentSession) return;
+
+            clearInterval(timerInterval);
+            timerRunning = false;
+
+            currentSession.duration_actual = timerSeconds;
+            db.addSession(currentSession);
+
+            document.getElementById('feedbackModal').classList.add('active');
+            backupManager.showNotification('✅ Allenamento completato! Ottimo lavoro!', 'success');
+        }
+
+        document.getElementById('feedbackForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const feedback = {
+                session_id: currentSession ? `session_${currentSession.started_at}` : null,
+                client_id: CLIENT_ID,
+                feeling: formData.get('feeling'),
+                difficult_part: formData.get('difficult_part'),
+                duration_adjustment: formData.get('duration_adjustment'),
+                intensity_adjustment: formData.get('intensity_adjustment'),
+                pain_discomfort: formData.get('pain_discomfort'),
+                favorite_exercises: formData.get('favorite_exercises'),
+                notes: formData.get('notes')
+            };
+
+            db.addFeedback(feedback);
+
+            closeModal('feedbackModal');
+            e.target.reset();
+            
+            backupManager.showNotification('💬 Feedback inviato ad Alissa! Grazie!', 'success');
+            
+            timerSeconds = 0;
+            currentSession = null;
+            document.getElementById('timerSection').style.display = 'none';
+            
+            loadClientData();
+        });
+
+        async function importWorkout() {
+            document.getElementById('workoutFileInput').click();
+        }
+
+        async function handleWorkoutImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
+                
+                console.log('=== IMPORT SCHEDA JSON ===');
+                console.log('Dati ricevuti:', data);
+                
+                // Verifica formato
+                if (!data.plan) {
+                    backupManager.showNotification('❌ File JSON non valido', 'error');
+                    return;
+                }
+                
+                // Imposta il plan con status attiva per questo cliente
+                const plan = {
+                    ...data.plan,
+                    client_id: CLIENT_ID,
+                    status: 'attiva',
+                    imported_at: new Date().toISOString()
+                };
+                
+                // Disattiva eventuali piani attivi esistenti
+                const existingPlans = db.getPlansByClientId(CLIENT_ID);
+                existingPlans.forEach(p => {
+                    if (p.status === 'attiva') {
+                        db.updatePlan(p.id, { status: 'completata' });
+                    }
+                });
+                
+                // Salva il nuovo plan
+                db.addPlan(plan);
+                
+                console.log('Piano importato:', plan);
+                console.log('========================');
+                
+                backupManager.showNotification('✅ Scheda importata con successo!', 'success');
+                
+                // Ricarica i dati
+                loadClientData();
+                
+            } catch (error) {
+                console.error('Errore import:', error);
+                backupManager.showNotification('❌ Errore durante l\'import. Verifica il file', 'error');
+            }
+            
+            event.target.value = '';
+        }
+
+        async function exportClientData() {
+            backupManager.exportClientData(CLIENT_ID);
+        }
+
+        function importClientData() {
+            document.getElementById('dataFileInput').click();
+        }
+
+        async function handleDataImport(event) {
+            const file = event.target.files[0];
+            if (file) await backupManager.importClientData(file);
+            event.target.value = '';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+    </script>
+</body>
+</html>
