@@ -1,0 +1,2677 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Trainer - Alissa Casagrande</title>
+    <link rel="stylesheet" href="css/main.css">
+    <!-- QR Code Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-card">
+            <div class="login-logo"><img src="images/logo-alissa.png" alt="Alissa Casagrande" style="width: 120px; height: 120px; border-radius: 50%;"></div>
+            <h1 class="login-title">ALISSA CASAGRANDE</h1>
+            <p class="login-subtitle">Personal Trainer - Mental Coach<br>Body & Mind Revolution</p>
+            
+            <div class="login-error" id="loginError" style="display: none;">❌ Password non corretta</div>
+            
+            <form class="login-form" onsubmit="loginTrainer(event)">
+                <div class="form-group">
+                    <label class="form-label">Password Trainer</label>
+                    <input type="password" class="form-control" id="trainerPassword" placeholder="Inserisci la password" required>
+                </div>
+                <button type="submit" class="btn btn-fucsia btn-login">🔓 ACCEDI COME TRAINER</button>
+            </form>
+
+            <div class="login-footer">
+                Password riservata al Personal Trainer
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" style="display: none;">
+        <!-- Header Compatto -->
+        <header class="header">
+            <div class="header-content">
+                <span class="logo"><img src="images/logo-alissa.png" alt="Logo" style="width: 40px; height: 40px; border-radius: 50%;"></span>
+                <div class="header-title">
+                    <h1>ALISSA CASAGRANDE</h1>
+                    <p>Personal Trainer - Mental Coach | Body & Mind Revolution</p>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <button class="btn-header btn-archived" onclick="showArchivedClients()">📦 Archiviati</button>
+                <button class="btn-header btn-logout" onclick="logoutTrainer()">🚪 Esci</button>
+            </div>
+        </header>
+
+        <!-- Main Container -->
+        <div class="main-container" style="min-height: auto;">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <!-- Dashboard Button -->
+                <button class="sidebar-nav-btn" onclick="showDashboardView()">📊 Dashboard</button>
+                
+                <!-- Campo di ricerca clienti -->
+                <div style="padding: 0 10px 12px 10px;">
+                    <div style="position: relative;">
+                        <input 
+                            type="text" 
+                            id="clientSearchInput" 
+                            placeholder="Cerca cliente..." 
+                            style="width: 100%; padding: 8px 8px 8px 32px; border: 2px solid rgba(255,255,255,0.3); border-radius: 8px; font-size: 13px; background: rgba(255,255,255,0.95);"
+                            onkeyup="searchClients()"
+                        >
+                        <span style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 16px;">🔍</span>
+                    </div>
+                </div>
+                
+                <!-- Titolo Lista -->
+                <h2>I Tuoi Clienti</h2>
+                
+                <!-- Lista Clienti (scrollabile) -->
+                <ul class="client-list" id="clientList"></ul>
+                
+                <!-- Pulsante Nuovo Cliente -->
+                <button class="add-client-btn" onclick="showAddClientModal()">+ Nuovo Cliente</button>
+            </aside>
+
+            <!-- Content Area -->
+            <main class="content">
+                <!-- Client Details (shown when client selected) -->
+                <div id="clientDetails" style="display: none;"></div>
+            </main>
+        </div>
+
+        <!-- Backup Footer con Statistiche -->
+        <div class="backup-footer">
+            <!-- Statistiche compatte -->
+            <div style="margin-bottom: 20px;">
+                <h3 style="font-size: 14px; color: var(--navy); margin: 0 0 10px 0; font-weight: 700;">📊 Statistiche Rapide</h3>
+                <div class="stats-grid-compact">
+                    <div class="stat-card-compact">
+                        <div class="stat-icon-small">👥</div>
+                        <div class="stat-info">
+                            <div class="stat-value-compact" id="statClientsActive">0</div>
+                            <div class="stat-label-compact">Clienti</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card-compact">
+                        <div class="stat-icon-small">📋</div>
+                        <div class="stat-info">
+                            <div class="stat-value-compact" id="statPlansGenerated">0</div>
+                            <div class="stat-label-compact">Schede</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card-compact">
+                        <div class="stat-icon-small">💪</div>
+                        <div class="stat-info">
+                            <div class="stat-value-compact" id="statSessionsCompleted">0</div>
+                            <div class="stat-label-compact">Sessioni</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card-compact">
+                        <div class="stat-icon-small">⭐</div>
+                        <div class="stat-info">
+                            <div class="stat-value-compact" id="statFeedbackReceived">0</div>
+                            <div class="stat-label-compact">Feedback</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <h3>💾 Gestione Backup</h3>
+            <div class="backup-actions">
+                <button class="btn btn-success" onclick="exportBackup()">💾 Export Backup Completo</button>
+                <button class="btn btn-primary" onclick="importBackup()">📥 Import Backup</button>
+                <input type="file" id="backupFileInput" accept=".json" style="display: none;" onchange="handleBackupImport(event)">
+            </div>
+            <p style="margin-top: 15px; font-size: 13px; color: #6b7280;">
+                💡 <strong>Consiglio:</strong> Esporta il backup completo ogni domenica sera e salvalo su Google Drive
+            </p>
+        </div>
+    </div>
+
+    <!-- Modal Add/Edit Client -->
+    <div class="modal" id="addClientModal">
+        <div class="modal-content" style="max-width: 900px; width: 90%; max-height: 90vh; overflow-y: auto; margin: auto;">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--fucsia) 0%, var(--arancio) 100%); color: white; margin: -30px -30px 30px -30px; padding: 25px 30px; border-radius: 16px 16px 0 0;">
+                <h2 class="modal-title" id="clientModalTitle" style="color: white; margin: 0; display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 32px;">👤</span>
+                    <span>Nuovo Cliente</span>
+                </h2>
+                <button type="button" class="modal-close" onclick="closeModal('addClientModal')" style="color: white; opacity: 0.9;">&times;</button>
+            </div>
+            <form id="clientForm" onsubmit="saveClient(event)">
+                <!-- Sezione Dati Anagrafici -->
+                <div style="background: linear-gradient(135deg, rgba(255, 20, 147, 0.05) 0%, rgba(255, 140, 0, 0.05) 100%); padding: 20px; border-radius: 12px; margin-bottom: 25px; border-left: 4px solid var(--fucsia);">
+                    <h3 style="color: var(--fucsia); font-size: 16px; font-weight: 700; margin: 0 0 20px 0; display: flex; align-items: center; gap: 8px;">
+                        📋 Dati Anagrafici
+                    </h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label class="form-label" style="color: var(--navy); font-weight: 600;">Nome e Cognome *</label>
+                            <input type="text" class="form-control" name="name" placeholder="Es: Maria Bianchi" required style="border: 2px solid #e5e7eb; transition: all 0.3s;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" style="color: var(--navy); font-weight: 600;">Email</label>
+                            <input type="email" class="form-control" name="email" placeholder="maria@email.com" style="border: 2px solid #e5e7eb; transition: all 0.3s;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sezione Parametri Fisici -->
+                <div style="background: linear-gradient(135deg, rgba(0, 206, 209, 0.05) 0%, rgba(139, 127, 232, 0.05) 100%); padding: 20px; border-radius: 12px; margin-bottom: 25px; border-left: 4px solid var(--cyan);">
+                    <h3 style="color: var(--cyan); font-size: 16px; font-weight: 700; margin: 0 0 20px 0; display: flex; align-items: center; gap: 8px;">
+                        📊 Parametri Fisici & Livello
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                        <div class="form-group">
+                            <label class="form-label" style="color: var(--navy); font-weight: 600;">Età *</label>
+                            <input type="number" class="form-control" name="age" min="14" max="99" placeholder="35" required style="border: 2px solid #e5e7eb;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" style="color: var(--navy); font-weight: 600;">Peso (kg) *</label>
+                            <input type="number" class="form-control" name="weight" min="30" max="200" placeholder="65" required style="border: 2px solid #e5e7eb;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" style="color: var(--navy); font-weight: 600;">Livello Fitness *</label>
+                            <select class="form-control" name="level" required style="border: 2px solid #e5e7eb;">
+                                <option value="">Seleziona...</option>
+                                <option value="principiante">🟢 Principiante</option>
+                                <option value="intermedio">🟡 Intermedio</option>
+                                <option value="avanzato">🔴 Avanzato</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sezione Problematiche -->
+                <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(239, 68, 68, 0.08) 100%); padding: 20px; border-radius: 12px; margin-bottom: 25px; border-left: 4px solid var(--danger);">
+                    <h3 style="color: var(--danger); font-size: 16px; font-weight: 700; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px;">
+                        🔴 Problematiche Fisiche
+                    </h3>
+                    <div class="form-group">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                        <label style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--bg-light); border-radius: 8px; cursor: pointer; transition: all 0.3s;">
+                            <input type="checkbox" name="problems" value="schiena" style="cursor: pointer;">
+                            <span>🔴 Schiena</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--bg-light); border-radius: 8px; cursor: pointer; transition: all 0.3s;">
+                            <input type="checkbox" name="problems" value="ginocchia" style="cursor: pointer;">
+                            <span>🔴 Ginocchia</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--bg-light); border-radius: 8px; cursor: pointer; transition: all 0.3s;">
+                            <input type="checkbox" name="problems" value="spalla" style="cursor: pointer;">
+                            <span>🔴 Spalla</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--bg-light); border-radius: 8px; cursor: pointer; transition: all 0.3s;">
+                            <input type="checkbox" name="problems" value="polso" style="cursor: pointer;">
+                            <span>🔴 Polso</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--bg-light); border-radius: 8px; cursor: pointer; transition: all 0.3s;">
+                            <input type="checkbox" name="problems" value="sovrappeso" style="cursor: pointer;">
+                            <span>⚖️ Sovrappeso</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--bg-light); border-radius: 8px; cursor: pointer; transition: all 0.3s;">
+                            <input type="checkbox" name="problems" value="post-parto" style="cursor: pointer;">
+                            <span>👶 Post-parto</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--bg-light); border-radius: 8px; cursor: pointer; transition: all 0.3s;">
+                            <input type="checkbox" name="problems" value="nessuna" style="cursor: pointer;">
+                            <span>✅ Nessuna</span>
+                        </label>
+                    </div>
+                    
+                    <!-- Campo testo libero per problematiche personalizzate -->
+                    <div style="margin-top: 15px;">
+                        <label class="form-label" style="font-size: 13px; color: #6b7280;">
+                            ✏️ Altre problematiche specifiche (opzionale)
+                        </label>
+                        <textarea 
+                            class="form-control" 
+                            name="custom_problems" 
+                            placeholder="Es: male al gomito sinistro, fascite plantare, ernia cervicale C5-C6, ecc."
+                            style="min-height: 80px; font-size: 14px; resize: vertical;"
+                        ></textarea>
+                        <small style="font-size: 12px; color: #9ca3af; display: block; margin-top: 5px;">
+                            💡 Specifica qualsiasi altra problematica non elencata sopra. Verrà considerata nella generazione della scheda.
+                        </small>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- Sezione Obiettivi e Preferenze -->
+                <div style="background: linear-gradient(135deg, rgba(139, 127, 232, 0.05) 0%, rgba(255, 20, 147, 0.05) 100%); padding: 20px; border-radius: 12px; margin-bottom: 25px; border-left: 4px solid var(--viola);">
+                    <h3 style="color: var(--viola); font-size: 16px; font-weight: 700; margin: 0 0 20px 0; display: flex; align-items: center; gap: 8px;">
+                        🎯 Obiettivi e Preferenze
+                    </h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label class="form-label" style="color: var(--navy); font-weight: 600;">Obiettivo *</label>
+                            <select class="form-control" name="goal" required style="border: 2px solid #e5e7eb;">
+                                <option value="">Seleziona...</option>
+                                <option value="tonificazione">💪 Tonificazione</option>
+                                <option value="dimagrimento">🔥 Dimagrimento</option>
+                                <option value="forza">🏋️ Forza</option>
+                                <option value="benessere">🧘 Benessere generale</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" style="color: var(--navy); font-weight: 600;">Stile Preferito *</label>
+                            <select class="form-control" name="style_preference" required style="border: 2px solid #e5e7eb;">
+                            <option value="">Seleziona...</option>
+                            <option value="pilates">Pilates</option>
+                            <option value="cardio">Cardio</option>
+                            <option value="functional">Functional Training</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label">Attrezzatura Disponibile *</label>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="equipment" value="tappetino">
+                            <span>Tappetino</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="equipment" value="elastici">
+                            <span>Elastici</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="equipment" value="pesi">
+                            <span>Pesi</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="equipment" value="pesi leggeri">
+                            <span>Pesi leggeri</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="equipment" value="sbarra">
+                            <span>Sbarra</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="equipment" value="step">
+                            <span>Step</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="equipment" value="nessuna">
+                            <span>Nessuna</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label class="form-label">Durata Preferita (minuti) *</label>
+                        <input type="number" class="form-control" name="duration_preference" min="20" max="90" placeholder="45" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Frequenza Settimanale *</label>
+                        <input type="number" class="form-control" name="frequency" min="1" max="7" placeholder="3" required>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-success btn-large">✅ Salva Cliente</button>
+                    <button type="button" class="btn" onclick="closeModal('addClientModal')">Annulla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Archived Clients -->
+    <div class="modal" id="archivedModal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2 class="modal-title">📦 Clienti Archiviati</h2>
+            </div>
+            <div id="archivedList" style="max-height: 500px; overflow-y: auto;"></div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="closeModal('archivedModal')">Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Approve Plan -->
+    <div class="modal" id="approvePlanModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Approva Scheda</h2>
+            </div>
+            <p>Vuoi approvare questa scheda e inviarla al cliente?</p>
+            <div class="modal-actions">
+                <button class="btn btn-success" onclick="confirmApprovePlan()">✅ Approva e Invia</button>
+                <button class="btn" onclick="closeModal('approvePlanModal')">Annulla</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Modifica Scheda SEMPLIFICATO -->
+    <div class="modal" id="editPlanModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; overflow-y: auto;">
+        <div style="max-width: 700px; margin: 20px auto; background: white; border-radius: 12px; padding: 20px;">
+            <h2 style="margin: 0 0 20px 0;">✏️ Modifica Scheda</h2>
+            
+            <div id="editPlanContent" style="margin-bottom: 20px;"></div>
+            
+            <div style="display: flex; gap: 10px;">
+                <button onclick="saveEditedPlan()" style="flex: 1; padding: 12px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">✅ Salva</button>
+                <button onclick="document.getElementById('editPlanModal').style.display='none'" style="flex: 1; padding: 12px; background: #6b7280; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Annulla</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal QR Code Condivisione -->
+    <div class="modal" id="qrCodeModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; overflow-y: auto;">
+        <div style="max-width: 500px; margin: 40px auto; background: white; border-radius: 16px; padding: 30px; text-align: center;">
+            <h2 style="margin: 0 0 10px 0; color: var(--navy);">📱 Condividi Dati con Cliente</h2>
+            <p style="color: #6b7280; margin-bottom: 20px;">Il cliente deve scannerizzare questo QR code con la fotocamera</p>
+            
+            <!-- QR Code Container -->
+            <div id="qrCodeContainer" style="display: flex; justify-content: center; align-items: center; padding: 20px; background: white; border-radius: 12px; margin-bottom: 20px;"></div>
+            
+            <!-- Istruzioni -->
+            <div style="background: #f0f9ff; padding: 15px; border-radius: 10px; border-left: 4px solid #0ea5e9; text-align: left; margin-bottom: 20px;">
+                <strong style="color: #0369a1;">📋 Istruzioni per il Cliente:</strong>
+                <ol style="margin: 10px 0 0 20px; color: #0c4a6e; font-size: 14px;">
+                    <li>Apri la <strong>fotocamera</strong> del cellulare</li>
+                    <li>Inquadra il <strong>QR code</strong></li>
+                    <li>Clicca sul <strong>link</strong> che appare</li>
+                    <li>Si aprirà la pagina cliente con i tuoi dati</li>
+                </ol>
+            </div>
+            
+            <!-- Opzioni Condivisione -->
+            <div style="margin-bottom: 20px;">
+                <p style="font-size: 13px; color: #6b7280; margin-bottom: 10px; font-weight: 600;">📤 Opzioni di condivisione:</p>
+                
+                <!-- Pulsante Condividi (Web Share API) -->
+                <button id="shareNativeBtn" class="btn btn-primary" style="width: 100%; margin-bottom: 10px; display: none;">
+                    📲 Condividi File (WhatsApp/Email)
+                </button>
+                
+                <!-- Pulsante Download JSON -->
+                <button id="downloadJsonBtn" class="btn btn-success" style="width: 100%; margin-bottom: 10px;">
+                    💾 Scarica File JSON
+                </button>
+            </div>
+            
+            <button onclick="closeModal('qrCodeModal')" class="btn" style="width: 100%;">Chiudi</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="js/database.js"></script>
+    <script src="js/workout-generator.js"></script>
+    <script src="js/backup-manager.js"></script>
+    <script src="js/exercise-image-manager.js"></script>
+    <script src="js/exercise-youtube-manager.js"></script>
+
+    <script>
+        const TRAINER_PASSWORD = "180305Xs!";
+        let currentClientId = null;
+        let currentPlanId = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Aggiungi event listener al pulsante "Nuovo Cliente"
+            const addClientBtn = document.querySelector('.add-client-btn');
+            if (addClientBtn) {
+                addClientBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showAddClientModal();
+                });
+            }
+            
+            if (sessionStorage.getItem('trainer_logged_in') === 'true') {
+                if (db._ready) {
+                    showMainApp();
+                } else {
+                    document.addEventListener('db_ready', showMainApp, { once: true });
+                }
+            }
+        });
+
+        function loginTrainer(event) {
+            event.preventDefault();
+            if (document.getElementById('trainerPassword').value === TRAINER_PASSWORD) {
+                sessionStorage.setItem('trainer_logged_in', 'true');
+                if (db._ready) {
+                    showMainApp();
+                } else {
+                    document.addEventListener('db_ready', showMainApp, { once: true });
+                    // Mostra messaggio di attesa
+                    document.getElementById('loginError').textContent = '⏳ Connessione in corso...';
+                    document.getElementById('loginError').style.display = 'block';
+                    document.getElementById('loginError').style.color = '#10b981';
+                }
+            } else {
+                const errorEl = document.getElementById('loginError');
+                errorEl.style.color = '';
+                errorEl.textContent = '❌ Password non corretta';
+                errorEl.style.display = 'block';
+                setTimeout(() => errorEl.style.display = 'none', 3000);
+            }
+        }
+
+        function logoutTrainer() {
+            if (confirm('Vuoi davvero uscire dalla dashboard?')) {
+                sessionStorage.removeItem('trainer_logged_in');
+                document.getElementById('mainApp').style.display = 'none';
+                document.getElementById('loginScreen').style.display = 'flex';
+                document.getElementById('trainerPassword').value = '';
+            }
+        }
+
+        function showMainApp() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            loadClientList();
+            updateDashboardStats();
+            loadRecentActivity();
+            
+            // Mostra dashboard overview
+            showDashboardView(); // Cambiato da dashboard->clientDetails
+        }
+        
+        function showDashboardView() {
+            currentClientId = null;
+            document.getElementById('clientDetails').style.display = 'none';
+            updateDashboardStats(); // Aggiorna quando torni alla dashboard
+            loadRecentActivity(); // Aggiorna anche le attività recenti
+        }
+
+        function showDashboardOverview() {
+            currentClientId = null;
+            loadClientList();
+            
+            const clients = db.getAllClients();
+            const allPlans = db.getAllPlans();
+            const allSessions = db.getAllSessions();
+            const allFeedback = db.getAllFeedback();
+            
+            // Calculate statistics
+            const totalClients = clients.length;
+            const activeClients = clients.filter(c => {
+                const sessions = db.getSessionsByClientId(c.id);
+                const lastSession = sessions[sessions.length - 1];
+                if (!lastSession) return false;
+                const daysSinceLastSession = (Date.now() - new Date(lastSession.completed_at)) / (1000 * 60 * 60 * 24);
+                return daysSinceLastSession <= 14;
+            }).length;
+            const totalWorkouts = allSessions.length;
+            const pendingPlans = allPlans.filter(p => p.status === 'in_attesa_approvazione').length;
+            const totalFeedback = allFeedback.length;
+            
+            // Get recent activities
+            const recentActivities = [];
+            
+            // Recent workouts
+            const recentSessions = allSessions.slice(-5).reverse();
+            recentSessions.forEach(session => {
+                const client = db.getClientById(session.client_id);
+                if (client) {
+                    recentActivities.push({
+                        type: 'workout',
+                        icon: '💪',
+                        text: `<span class="activity-client">${client.name}</span> ha completato un allenamento`,
+                        time: formatTimeAgo(session.completed_at)
+                    });
+                }
+            });
+            
+            // Recent feedback
+            const recentFeedbackList = allFeedback.slice(-3).reverse();
+            recentFeedbackList.forEach(feedback => {
+                const client = db.getClientById(feedback.client_id);
+                if (client) {
+                    recentActivities.push({
+                        type: 'feedback',
+                        icon: '💬',
+                        text: `<span class="activity-client">${client.name}</span> ha inviato un feedback`,
+                        time: formatTimeAgo(feedback.submitted_at)
+                    });
+                }
+            });
+            
+            // Recent plans
+            const recentPlans = allPlans.slice(-3).reverse();
+            recentPlans.forEach(plan => {
+                const client = db.getClientById(plan.client_id);
+                if (client && plan.status === 'in_attesa_approvazione') {
+                    recentActivities.push({
+                        type: 'plan',
+                        icon: '📋',
+                        text: `Scheda per <span class="activity-client">${client.name}</span> in attesa di approvazione`,
+                        time: formatTimeAgo(plan.generated_at)
+                    });
+                }
+            });
+            
+            // Sort by time
+            recentActivities.sort((a, b) => b.time.localeCompare(a.time));
+            
+            let html = `
+                <div class="dashboard-overview">
+                    <h1 class="dashboard-title">
+                        <span>👋</span> Benvenuta, Alissa!
+                    </h1>
+                    <p class="dashboard-subtitle">Panoramica della tua attività Body & Mind Revolution</p>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">👥</div>
+                            <div class="stat-label">Totale Clienti</div>
+                            <div class="stat-value">${totalClients}</div>
+                            <span class="stat-change positive">↑ Attivi</span>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">🔥</div>
+                            <div class="stat-label">Clienti Attivi</div>
+                            <div class="stat-value">${activeClients}</div>
+                            <span class="stat-change positive">↑ Ultimi 14gg</span>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">💪</div>
+                            <div class="stat-label">Allenamenti Totali</div>
+                            <div class="stat-value">${totalWorkouts}</div>
+                            <span class="stat-change positive">↑ ${allSessions.length > 0 ? '+' + Math.round((allSessions.length / 30) * 100) / 10 : '0'}/giorno</span>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">⏳</div>
+                            <div class="stat-label">Schede in Attesa</div>
+                            <div class="stat-value">${pendingPlans}</div>
+                            ${pendingPlans > 0 ? '<span class="stat-change negative">⚠️ Richiede azione</span>' : '<span class="stat-change positive">✓ Tutto OK</span>'}
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">💬</div>
+                            <div class="stat-label">Feedback Ricevuti</div>
+                            <div class="stat-value">${totalFeedback}</div>
+                            <span class="stat-change positive">↑ Comunicazione</span>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">📈</div>
+                            <div class="stat-label">Tasso Completamento</div>
+                            <div class="stat-value">${totalWorkouts > 0 ? Math.round((totalWorkouts / (totalClients * 12)) * 100) : 0}%</div>
+                            <span class="stat-change positive">↑ Ottimo</span>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-actions">
+                        <div class="quick-action-btn" onclick="showAddClientModal()">
+                            <div class="quick-action-icon">➕</div>
+                            <div class="quick-action-text">Nuovo Cliente</div>
+                        </div>
+                        <div class="quick-action-btn" onclick="viewPendingPlans()">
+                            <div class="quick-action-icon">⏳</div>
+                            <div class="quick-action-text">Schede da Approvare</div>
+                        </div>
+                        <div class="quick-action-btn" onclick="showArchivedClients()">
+                            <div class="quick-action-icon">📦</div>
+                            <div class="quick-action-text">Clienti Archiviati</div>
+                        </div>
+                        <div class="quick-action-btn" onclick="exportBackup()">
+                            <div class="quick-action-icon">💾</div>
+                            <div class="quick-action-text">Backup Completo</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="activity-feed">
+                    <div class="activity-header">
+                        <h2 class="activity-title">📊 Attività Recenti</h2>
+                        <span class="badge badge-info">Ultimi ${recentActivities.length} eventi</span>
+                    </div>
+                    <ul class="activity-list">
+                        ${recentActivities.length > 0 ? recentActivities.map(activity => `
+                            <li class="activity-item">
+                                <div class="activity-icon ${activity.type}">
+                                    ${activity.icon}
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">${activity.text}</div>
+                                    <div class="activity-time">${activity.time}</div>
+                                </div>
+                            </li>
+                        `).join('') : '<li style="text-align: center; padding: 40px; color: #6b7280;">Nessuna attività recente</li>'}
+                    </ul>
+                </div>
+            `;
+            
+            document.getElementById('clientDetails').innerHTML = html;
+        }
+        
+        function formatTimeAgo(timestamp) {
+            const now = Date.now();
+            const time = new Date(timestamp).getTime();
+            const diff = now - time;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+            
+            if (minutes < 1) return 'Proprio ora';
+            if (minutes < 60) return `${minutes} minuti fa`;
+            if (hours < 24) return `${hours} ore fa`;
+            if (days < 7) return `${days} giorni fa`;
+            return new Date(timestamp).toLocaleDateString('it-IT');
+        }
+        
+        function viewPendingPlans() {
+            const plans = db.getAllPlans().filter(p => p.status === 'in_attesa_approvazione');
+            if (plans.length === 0) {
+                backupManager.showNotification('✓ Nessuna scheda in attesa di approvazione', 'info');
+                return;
+            }
+            // Select first client with pending plan
+            const firstPlan = plans[0];
+            selectClient(firstPlan.client_id);
+        }
+
+        function loadClientList() {
+            const clients = db.getAllClients();
+            const clientList = document.getElementById('clientList');
+            
+            let html = `
+                <div class="client-item ${!currentClientId ? 'active' : ''}" onclick="showDashboard()" style="background: rgba(255,255,255,0.95); border: 2px solid ${!currentClientId ? 'white' : 'transparent'}; margin-bottom: 20px;">
+                    <h3 style="margin: 0; color: var(--navy); font-size: 15px;">📊 Dashboard</h3>
+                    <p style="margin: 4px 0 0 0; font-size: 12px; color: #64748b;">Panoramica attività</p>
+                </div>
+            `;
+            
+            html += clients.map(client => {
+                const stats = db.getClientStats(client.id);
+                const profile = db.getProfileByClientId(client.id);
+                return `
+                    <div class="client-item ${currentClientId === client.id ? 'active' : ''}" 
+                        onclick="selectClient('${client.id}')">
+                        <h3>${client.name}</h3>
+                        <p>${profile ? profile.level : 'Profilo incompleto'}</p>
+                        <span class="client-status status-active">🏋️ ${stats.totalWorkouts} allenamenti</span>
+                    </div>
+                `;
+            }).join('');
+            
+            clientList.innerHTML = html;
+
+            // Show dashboard by default if no client selected
+            if (clients.length > 0 && !currentClientId) {
+                showDashboard();
+            }
+        }
+        
+        // Funzione di ricerca clienti
+        function searchClients() {
+            const searchInput = document.getElementById('clientSearchInput');
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const clients = db.getAllClients();
+            const clientList = document.getElementById('clientList');
+            
+            // Filtra clienti
+            const filteredClients = clients.filter(function(client) {
+                return client.name.toLowerCase().indexOf(searchTerm) !== -1;
+            });
+            
+            // Renderizza lista filtrata
+            let html = `
+                <div class="client-item ${!currentClientId ? 'active' : ''}" onclick="showDashboard()" style="background: rgba(255,255,255,0.95); border: 2px solid ${!currentClientId ? 'white' : 'transparent'}; margin-bottom: 20px;">
+                    <h3 style="margin: 0; color: var(--navy); font-size: 15px;">📊 Dashboard</h3>
+                    <p style="margin: 4px 0 0 0; font-size: 12px; color: #64748b;">Panoramica attività</p>
+                </div>
+            `;
+            
+            if (filteredClients.length === 0 && searchTerm) {
+                html += `
+                    <div style="padding: 20px; text-align: center; color: #6b7280;">
+                        <p style="margin: 0;">Nessun cliente trovato</p>
+                        <p style="margin: 5px 0 0 0; font-size: 12px;">Prova con un altro nome</p>
+                    </div>
+                `;
+            } else {
+                html += filteredClients.map(function(client) {
+                    const stats = db.getClientStats(client.id);
+                    const profile = db.getProfileByClientId(client.id);
+                    return `
+                        <div class="client-item ${currentClientId === client.id ? 'active' : ''}" 
+                            onclick="selectClient('${client.id}')">
+                            <h3>${client.name}</h3>
+                            <p>${profile ? profile.level : 'Profilo incompleto'}</p>
+                            <span class="client-status status-active">🏋️ ${stats.totalWorkouts} allenamenti</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            clientList.innerHTML = html;
+        }
+
+        function selectClient(clientId) {
+            currentClientId = clientId;
+            
+            // Show client details (dashboard sempre visibile in sidebar)
+            document.getElementById('clientDetails').style.display = 'block';
+            
+            loadClientList();
+            loadClientDetails(clientId);
+        }
+
+        function showDashboard() {
+            // Hide client details (dashboard sempre visibile in sidebar)
+            document.getElementById('clientDetails').style.display = 'none';
+            currentClientId = null;
+            loadClientList();
+            updateDashboardStats();
+            loadRecentActivity();
+        }
+
+        function updateDashboardStats() {
+            const clients = db.getAllClients();
+            const allPlans = [];
+            const allSessions = [];
+            const allFeedback = [];
+
+            console.log('=== UPDATE DASHBOARD STATS ===');
+            console.log('Clienti trovati:', clients.length);
+
+            clients.forEach(client => {
+                const plans = db.getPlansByClientId(client.id);
+                const sessions = db.getSessionsByClientId(client.id);
+                const feedback = db.getFeedbackByClientId(client.id);
+                
+                console.log(`Cliente ${client.name}:`, {
+                    plans: plans.length,
+                    sessions: sessions.length,
+                    feedback: feedback.length
+                });
+                
+                allPlans.push(...plans);
+                allSessions.push(...sessions);
+                allFeedback.push(...feedback);
+            });
+
+            console.log('Totali:', {
+                clients: clients.length,
+                plans: allPlans.length,
+                sessions: allSessions.length,
+                feedback: allFeedback.length
+            });
+
+            document.getElementById('statClientsActive').textContent = clients.length;
+            document.getElementById('statPlansGenerated').textContent = allPlans.length;
+            document.getElementById('statSessionsCompleted').textContent = allSessions.length;
+            document.getElementById('statFeedbackReceived').textContent = allFeedback.length;
+            
+            console.log('Dashboard stats aggiornate!');
+        }
+
+        function loadRecentActivity() {
+            const clients = db.getAllClients();
+            const activities = [];
+            const now = Date.now();
+
+            // Get recent feedback (last 7 days)
+            clients.forEach(client => {
+                const feedback = db.getFeedbackByClientId(client.id);
+                feedback.forEach(f => {
+                    if (now - f.created_at < 7 * 24 * 60 * 60 * 1000) {
+                        activities.push({
+                            time: f.created_at,
+                            client: client.name,
+                            icon: '⭐',
+                            text: `Feedback ricevuto da <strong>${client.name}</strong>`,
+                            subtext: `Soddisfazione: ${f.satisfaction}/10`
+                        });
+                    }
+                });
+
+                // Get recent sessions (last 7 days)
+                const sessions = db.getSessionsByClientId(client.id);
+                sessions.forEach(s => {
+                    if (now - s.completed_at < 7 * 24 * 60 * 60 * 1000) {
+                        activities.push({
+                            time: s.completed_at,
+                            client: client.name,
+                            icon: '💪',
+                            text: `<strong>${client.name}</strong> ha completato un allenamento`,
+                            subtext: `Durata: ${s.duration} min`
+                        });
+                    }
+                });
+
+                // Get recent plans (last 7 days)
+                const plans = db.getPlansByClientId(client.id);
+                plans.forEach(p => {
+                    if (now - p.generated_at < 7 * 24 * 60 * 60 * 1000) {
+                        activities.push({
+                            time: p.generated_at,
+                            client: client.name,
+                            icon: '📋',
+                            text: `Scheda generata per <strong>${client.name}</strong>`,
+                            subtext: `Durata: ${p.duration} min`
+                        });
+                    }
+                });
+            });
+
+            // Sort by time (most recent first)
+            activities.sort((a, b) => b.time - a.time);
+
+            // Display top 10
+            const activityList = document.getElementById('activityList');
+            if (activities.length === 0) {
+                activityList.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 20px;">Nessuna attività recente negli ultimi 7 giorni</p>';
+            } else {
+                activityList.innerHTML = activities.slice(0, 10).map(a => `
+                    <div class="activity-item">
+                        <div class="activity-info">
+                            <div class="activity-client">${a.icon} ${a.text}</div>
+                            <div class="activity-description">${a.subtext}</div>
+                        </div>
+                        <div class="activity-time">${formatTimeAgo(a.time)}</div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function formatTimeAgo(timestamp) {
+            const now = Date.now();
+            const diff = now - timestamp;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+
+            if (minutes < 60) return `${minutes} min fa`;
+            if (hours < 24) return `${hours}h fa`;
+            if (days < 7) return `${days}gg fa`;
+            return new Date(timestamp).toLocaleDateString('it-IT');
+        }
+
+        function loadClientDetails(clientId) {
+            const client = db.getClientById(clientId);
+            const profile = db.getProfileByClientId(clientId);
+            const plans = db.getPlansByClientId(clientId);
+            const latestFeedback = db.getLatestFeedbackByClientId(clientId);
+            const stats = db.getClientStats(clientId);
+
+            if (!profile) {
+                document.getElementById('clientDetails').innerHTML = '<p>Profilo non completo. Modifica cliente per aggiungere dati.</p>';
+                return;
+            }
+
+            const pendingPlan = plans.find(p => p.status === 'in_attesa_approvazione');
+            const activePlan = plans.find(p => p.status === 'attiva');
+
+            let html = `
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">👤 ${client.name}</h2>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <span class="badge badge-info">${profile.level}</span>
+                            <button class="btn btn-arancio" onclick="editClient('${client.id}')" style="padding: 8px 16px; font-size: 13px;">✏️ Modifica</button>
+                            <button class="btn btn-danger" onclick="archiveClientConfirm('${client.id}')" style="padding: 8px 16px; font-size: 13px;">🗑️ Archivia</button>
+                            <button class="btn btn-primary" onclick="shareClientData('${client.id}')" style="padding: 8px 16px; font-size: 13px;">📤 Condividi Dati</button>
+                        </div>
+                    </div>
+
+                    <div class="profile-info">
+                        <div class="info-item">
+                            <span class="info-label">Età</span>
+                            <span class="info-value">${profile.age} anni</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Peso</span>
+                            <span class="info-value">${profile.weight} kg</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Obiettivo</span>
+                            <span class="info-value">${profile.goal}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Frequenza</span>
+                            <span class="info-value">${profile.frequency}x/settimana</span>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <strong>Problematiche:</strong><br>
+                        ${profile.problems.map(p => `<span class="badge badge-danger">${p}</span>`).join(' ')}
+                        ${profile.custom_problems ? `<br><small style="color: #6b7280; margin-top: 8px; display: block;">✏️ <strong>Specifiche:</strong> ${profile.custom_problems}</small>` : ''}
+                    </div>
+
+                    <div style="margin-top: 15px;">
+                        <strong>Attrezzatura disponibile:</strong><br>
+                        ${profile.equipment.map(e => `<span class="badge badge-info">${e}</span>`).join(' ')}
+                    </div>
+                </div>
+            `;
+
+            if (pendingPlan) {
+                html += renderPlanCard(pendingPlan, 'pending');
+            }
+
+            html += `
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">🤖 Genera Nuova Scheda AI</h2>
+                    </div>
+                    <p>Il sistema AI creerà una scheda personalizzata basata su:</p>
+                    <ul style="margin: 15px 0; padding-left: 25px;">
+                        <li>Livello e obiettivi del cliente</li>
+                        <li>Problematiche fisiche</li>
+                        <li>Attrezzatura disponibile</li>
+                        <li>Feedback degli allenamenti precedenti</li>
+                    </ul>
+                    ${latestFeedback ? `
+                        <div class="badge badge-warning" style="margin: 15px 0;">
+                            ℹ️ Disponibile feedback recente del ${new Date(latestFeedback.submitted_at).toLocaleDateString('it-IT')}
+                        </div>
+                    ` : ''}
+                    <button class="btn btn-fucsia btn-large" onclick="generateWorkout()" style="margin-top: 20px; width: 100%;">
+                        🤖 GENERA NUOVA SCHEDA AI
+                    </button>
+                </div>
+            `;
+
+            if (activePlan) {
+                html += renderPlanCard(activePlan, 'active');
+            }
+
+            if (latestFeedback) {
+                html += renderFeedbackCard(latestFeedback);
+            }
+
+            html += `
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">📊 Statistiche</h2>
+                    </div>
+                    <div class="profile-info">
+                        <div class="info-item">
+                            <span class="info-label">Allenamenti completati</span>
+                            <span class="info-value">${stats.totalWorkouts}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Feedback ricevuti</span>
+                            <span class="info-value">${stats.totalFeedback}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Schede create</span>
+                            <span class="info-value">${stats.totalPlans}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Ultimo allenamento</span>
+                            <span class="info-value">${stats.lastWorkout ? new Date(stats.lastWorkout).toLocaleDateString('it-IT') : 'Mai'}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- CARD QR CODE SEMPRE VISIBILE -->
+                <div class="card" style="border-left: 4px solid var(--fucsia);">
+                    <div class="card-header">
+                        <h2 class="card-title">📱 QR Code Accesso Cliente</h2>
+                    </div>
+                    <p style="margin-bottom: 20px; color: #6b7280; text-align: center;">
+                        <strong style="font-size: 16px;">Il cliente può inquadrare questo QR con la fotocamera per accedere.</strong><br>
+                        <small style="color: #9ca3af;">QR Minimale: solo ID + nome + scheda (il più piccolo possibile)</small>
+                    </p>
+                    
+                    <!-- Container QR centrato e ridotto -->
+                    <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+                        <div id="qrCodeClientAccess" style="width: 250px; height: 250px; display: flex; justify-content: center; align-items: center; padding: 15px; background: white; border-radius: 12px; border: 2px solid var(--fucsia); box-shadow: 0 4px 12px rgba(236, 11, 136, 0.15);"></div>
+                    </div>
+                    
+                    <div style="background: #f0f9ff; padding: 15px; border-radius: 10px; border-left: 4px solid #0ea5e9; margin-bottom: 15px;">
+                        <strong style="color: #0369a1;">📋 Istruzioni:</strong>
+                        <ol style="margin: 10px 0 0 20px; color: #0c4a6e; font-size: 14px;">
+                            <li>Mostra questo QR al cliente</li>
+                            <li>Cliente apre fotocamera smartphone</li>
+                            <li>Inquadra il QR code</li>
+                            <li>Click sul link che appare</li>
+                            <li>Import automatico → Login</li>
+                        </ol>
+                    </div>
+                    <button class="btn btn-primary" onclick="downloadQRCodePDF('` + clientId + `')" style="width: 100%; margin-top: 15px; margin-bottom: 10px;">
+                        📄 Scarica PDF con QR Code
+                    </button>
+                    <button class="btn btn-success" onclick="downloadClientJSONDirect('` + clientId + `')" style="width: 100%; margin-bottom: 10px;">
+                        💾 Scarica JSON Completo (con storico)
+                    </button>
+                    <button class="btn btn-info" onclick="downloadClientCSV('` + clientId + `')" style="width: 100%; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;">
+                        📊 Esporta Scheda CSV
+                    </button>
+                </div>
+            `;
+
+            document.getElementById('clientDetails').innerHTML = html;
+            
+            // Genera QR code subito dopo aver popolato l'HTML
+            generateClientQRCode(clientId);
+        }
+
+        function renderPlanCard(plan, type) {
+            const statusColor = type === 'pending' ? 'warning' : 'info';
+            const statusText = type === 'pending' ? 'In attesa di approvazione' : 'Scheda attiva';
+
+            let html = `
+                <div class="card" style="border-left: 4px solid var(--${type === 'pending' ? 'arancio' : 'cyan'});">
+                    <div class="card-header">
+                        <h2 class="card-title">${plan.title}</h2>
+                        <span class="badge badge-${statusColor}">${statusText}</span>
+                    </div>
+
+                    ${plan.ai_suggestion ? `
+                        <div style="background: rgba(255, 140, 0, 0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                            <strong>🤖 Suggerimenti AI:</strong><br>
+                            <div style="white-space: pre-line; margin-top: 10px;">${plan.ai_suggestion}</div>
+                        </div>
+                    ` : ''}
+
+                    <div style="margin-bottom: 20px;">
+                        <span class="badge badge-cyan">⏱️ ${plan.duration} min</span>
+                        <span class="badge badge-info">🎯 ${plan.objective}</span>
+                    </div>
+            `;
+
+            // Renderizza sezioni con campi editabili
+            if (plan.phases.warmup) {
+                const warmupExercises = plan.phases.warmup.exercises || plan.phases.warmup;
+                if (warmupExercises.length > 0) {
+                    const warmupTitle = plan.phases.warmup.title || '🔥 Riscaldamento';
+                    html += renderExerciseSection(warmupTitle, warmupExercises, 'warmup', plan.id);
+                }
+            }
+            
+            if (plan.phases.mobility) {
+                const mobilityExercises = plan.phases.mobility.exercises || plan.phases.mobility;
+                if (mobilityExercises.length > 0) {
+                    const mobilityTitle = plan.phases.mobility.title || '🧘 Mobilità';
+                    html += renderExerciseSection(mobilityTitle, mobilityExercises, 'mobility', plan.id);
+                }
+            }
+            
+            if (plan.phases.strength) {
+                const strengthExercises = plan.phases.strength.exercises || plan.phases.strength;
+                if (strengthExercises.length > 0) {
+                    const strengthTitle = plan.phases.strength.title || '💪 Rinforzo';
+                    html += renderExerciseSection(strengthTitle, strengthExercises, 'strength', plan.id);
+                }
+            }
+            
+            if (plan.phases.circuit) {
+                const circuitExercises = plan.phases.circuit.exercises || plan.phases.circuit;
+                if (circuitExercises.length > 0) {
+                    const circuitTitle = plan.phases.circuit.title || '⚡ Circuito';
+                    html += renderExerciseSection(circuitTitle, circuitExercises, 'circuit', plan.id);
+                }
+            }
+            
+            if (plan.phases.cooldown) {
+                const cooldownExercises = plan.phases.cooldown.exercises || plan.phases.cooldown;
+                if (cooldownExercises.length > 0) {
+                    const cooldownTitle = plan.phases.cooldown.title || '❄️ Defaticamento';
+                    html += renderExerciseSection(cooldownTitle, cooldownExercises, 'cooldown', plan.id);
+                }
+            }
+
+            // Pulsante SALVA MODIFICHE (sempre visibile)
+            html += `
+                <div style="margin: 25px 0; padding: 15px; background: #fef3c7; border-radius: 10px; border-left: 4px solid #f59e0b;">
+                    <button onclick="savePlanChanges('${plan.id}')" style="width: 100%; padding: 15px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer;">
+                        💾 SALVA MODIFICHE SCHEDA
+                    </button>
+                    <div style="margin-top: 8px; font-size: 12px; color: #92400e;">
+                        ⚠️ Modifica gli esercizi e le ripetizioni sopra, poi clicca qui per salvare
+                    </div>
+                </div>
+            `;
+
+            if (type === 'pending') {
+                html += `
+                    <div style="display: flex; gap: 10px; margin-top: 25px; flex-wrap: wrap;">
+                        <button class="btn btn-primary btn-large" onclick="approvePlanOnly('${plan.id}')" style="flex: 1; min-width: 180px;">
+                            ✅ APPROVA SCHEDA
+                        </button>
+                        <button class="btn btn-success btn-large" onclick="exportWorkoutJSON('${plan.id}')" style="flex: 1; min-width: 180px;">
+                            📤 EXPORT JSON
+                        </button>
+                        <button class="btn btn-fucsia btn-large" onclick="exportWorkoutPDF('${plan.id}')" style="flex: 1; min-width: 180px;">
+                            📄 EXPORT PDF
+                        </button>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div style="display: flex; gap: 10px; margin-top: 25px; flex-wrap: wrap;">
+                        <button class="btn btn-primary btn-large" onclick="sendToClient('${plan.id}')" style="flex: 1; min-width: 180px;">
+                            📨 INVIA AL CLIENTE
+                        </button>
+                        <button class="btn btn-success btn-large" onclick="exportWorkoutJSON('${plan.id}')" style="flex: 1; min-width: 180px;">
+                            📤 EXPORT JSON
+                        </button>
+                        <button class="btn btn-fucsia btn-large" onclick="exportWorkoutPDF('${plan.id}')" style="flex: 1; min-width: 180px;">
+                            📄 EXPORT PDF
+                        </button>
+                    </div>
+                `;
+            }
+
+            html += `</div>`;
+            return html;
+        }
+
+        function renderExerciseSection(title, exercises, sectionKey, planId) {
+            // Prepara 3 esercizi (riempi con vuoti se meno di 3)
+            const ex1 = exercises[0] ? exercises[0].name : '';
+            const ex2 = exercises[1] ? exercises[1].name : '';
+            const ex3 = exercises[2] ? exercises[2].name : '';
+            
+            // Estrai ripetizioni (usa il primo esercizio come riferimento, o default)
+            let firstReps = 'x1';
+            if (exercises && exercises.length > 0) {
+                const firstEx = exercises[0];
+                if (firstEx.reps) {
+                    firstReps = firstEx.reps;
+                } else if (firstEx.duration) {
+                    firstReps = firstEx.duration;
+                }
+            }
+            
+            // Helper per pulsanti media
+            function renderMediaButtons(exerciseName, index) {
+                if (!exerciseName) return '';
+                
+                const hasImage = exerciseImageManager.hasImage(exerciseName);
+                const hasYoutube = exerciseYouTubeLinkManager.hasLink(exerciseName);
+                
+                return `
+                    <div style="display: flex; gap: 5px; margin-top: 5px;">
+                        <button onclick="addExerciseYouTube('${exerciseName.replace(/'/g, "\\'")}')" 
+                                style="flex: 1; padding: 6px; background: ${hasYoutube ? '#ef4444' : '#f3f4f6'}; color: ${hasYoutube ? 'white' : '#6b7280'}; border: none; border-radius: 6px; font-size: 11px; cursor: pointer;">
+                            ${hasYoutube ? '✅' : '▶️'} YouTube
+                        </button>
+                        <button onclick="document.getElementById('imgUpload_${sectionKey}_${index}_${planId}').click()" 
+                                style="flex: 1; padding: 6px; background: ${hasImage ? '#8b5cf6' : '#f3f4f6'}; color: ${hasImage ? 'white' : '#6b7280'}; border: none; border-radius: 6px; font-size: 11px; cursor: pointer;">
+                            ${hasImage ? '✅' : '📸'} Immagine
+                        </button>
+                        <input type="file" id="imgUpload_${sectionKey}_${index}_${planId}" accept="image/*" style="display: none;" 
+                               onchange="uploadExerciseImage('${exerciseName.replace(/'/g, "\\'")}', this)">
+                    </div>
+                `;
+            }
+            
+            return `
+                <div class="workout-section" style="margin-bottom: 20px; padding: 15px; background: white; border-radius: 10px; border: 2px solid #e5e7eb;">
+                    <!-- Nome Sezione Editabile -->
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 5px;">Nome Sezione:</label>
+                        <input 
+                            type="text" 
+                            id="title_${sectionKey}_${planId}" 
+                            value="${title}"
+                            style="width: 100%; padding: 10px; border: 2px solid #EC0B88; border-radius: 8px; font-size: 16px; font-weight: 700; color: #1f2937;"
+                            placeholder="Es: Rinforzo Lower Body"
+                        >
+                    </div>
+                    
+                    <!-- Esercizio 1 -->
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 5px;">Esercizio 1:</label>
+                        <input 
+                            type="text" 
+                            id="ex_${sectionKey}_0_${planId}" 
+                            value="${ex1}"
+                            style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;"
+                            placeholder="Es: Squat"
+                            onchange="updateMediaButtons('${sectionKey}', 0, '${planId}')"
+                        >
+                        <div id="media_${sectionKey}_0_${planId}">
+                            ${renderMediaButtons(ex1, 0)}
+                        </div>
+                    </div>
+                    
+                    <!-- Esercizio 2 -->
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 5px;">Esercizio 2:</label>
+                        <input 
+                            type="text" 
+                            id="ex_${sectionKey}_1_${planId}" 
+                            value="${ex2}"
+                            style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;"
+                            placeholder="Es: Affondi"
+                            onchange="updateMediaButtons('${sectionKey}', 1, '${planId}')"
+                        >
+                        <div id="media_${sectionKey}_1_${planId}">
+                            ${renderMediaButtons(ex2, 1)}
+                        </div>
+                    </div>
+                    
+                    <!-- Esercizio 3 -->
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 5px;">Esercizio 3:</label>
+                        <input 
+                            type="text" 
+                            id="ex_${sectionKey}_2_${planId}" 
+                            value="${ex3}"
+                            style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;"
+                            placeholder="Es: Plank"
+                            onchange="updateMediaButtons('${sectionKey}', 2, '${planId}')"
+                        >
+                        <div id="media_${sectionKey}_2_${planId}">
+                            ${renderMediaButtons(ex3, 2)}
+                        </div>
+                    </div>
+                    
+                    <!-- Ripetizioni -->
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #e5e7eb;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 5px;">Ripetizioni (per tutti gli esercizi):</label>
+                        <input 
+                            type="text" 
+                            id="reps_${sectionKey}_${planId}" 
+                            value="${firstReps}"
+                            style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;"
+                            placeholder="Es: x1, x2, x3, 12 rip, 30 sec"
+                        >
+                    </div>
+                    
+                    <div style="margin-top: 10px; padding: 8px; background: #dbeafe; border-radius: 6px; font-size: 11px; color: #1e40af;">
+                        💡 Modifica gli esercizi e le ripetizioni, poi clicca "💾 SALVA MODIFICHE" in fondo
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Funzione per aggiornare pulsanti media quando cambia nome esercizio
+        function updateMediaButtons(sectionKey, index, planId) {
+            const input = document.getElementById('ex_' + sectionKey + '_' + index + '_' + planId);
+            const mediaDiv = document.getElementById('media_' + sectionKey + '_' + index + '_' + planId);
+            const exerciseName = input.value.trim();
+            
+            if (!exerciseName) {
+                mediaDiv.innerHTML = '';
+                return;
+            }
+            
+            const hasImage = exerciseImageManager.hasImage(exerciseName);
+            const hasYoutube = exerciseYouTubeLinkManager.hasLink(exerciseName);
+            
+            mediaDiv.innerHTML = `
+                <div style="display: flex; gap: 5px; margin-top: 5px;">
+                    <button onclick="addExerciseYouTube('${exerciseName.replace(/'/g, "\\'")}')" 
+                            style="flex: 1; padding: 6px; background: ${hasYoutube ? '#ef4444' : '#f3f4f6'}; color: ${hasYoutube ? 'white' : '#6b7280'}; border: none; border-radius: 6px; font-size: 11px; cursor: pointer;">
+                        ${hasYoutube ? '✅' : '▶️'} YouTube
+                    </button>
+                    <button onclick="document.getElementById('imgUpload_${sectionKey}_${index}_${planId}').click()" 
+                            style="flex: 1; padding: 6px; background: ${hasImage ? '#8b5cf6' : '#f3f4f6'}; color: ${hasImage ? 'white' : '#6b7280'}; border: none; border-radius: 6px; font-size: 11px; cursor: pointer;">
+                        ${hasImage ? '✅' : '📸'} Immagine
+                    </button>
+                    <input type="file" id="imgUpload_${sectionKey}_${index}_${planId}" accept="image/*" style="display: none;" 
+                           onchange="uploadExerciseImage('${exerciseName.replace(/'/g, "\\'")}', this)">
+                </div>
+            `;
+        }
+        
+        // Funzione per upload immagine
+        function uploadExerciseImage(exerciseName, inputElement) {
+            const file = inputElement.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    exerciseImageManager.saveImage(exerciseName, e.target.result);
+                    backupManager.showNotification('✅ Immagine salvata per ' + exerciseName, 'success');
+                    loadClientDetails(currentClientId); // Ricarica per aggiornare badge
+                } catch (error) {
+                    backupManager.showNotification('❌ Errore salvataggio immagine', 'error');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function renderFeedbackCard(feedback) {
+            return `
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">💬 Ultimo Feedback Cliente</h2>
+                        <span class="badge badge-info">${new Date(feedback.submitted_at).toLocaleDateString('it-IT')}</span>
+                    </div>
+                    <div class="profile-info">
+                        <div class="info-item">
+                            <span class="info-label">Sensazione</span>
+                            <span class="info-value">${feedback.feeling || 'N/A'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Parte difficile</span>
+                            <span class="info-value">${feedback.difficult_part || 'Nessuna'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Durata</span>
+                            <span class="info-value">${feedback.duration_adjustment || 'OK'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Intensità</span>
+                            <span class="info-value">${feedback.intensity_adjustment || 'OK'}</span>
+                        </div>
+                    </div>
+                    ${feedback.pain_discomfort ? `
+                        <div style="margin-top: 15px; background: rgba(239, 68, 68, 0.1); padding: 12px; border-radius: 8px;">
+                            <strong>⚠️ Dolore/Fastidio:</strong> ${feedback.pain_discomfort}
+                        </div>
+                    ` : ''}
+                    ${feedback.favorite_exercises ? `
+                        <div style="margin-top: 15px;">
+                            <strong>💚 Esercizi preferiti:</strong> ${feedback.favorite_exercises}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function generateWorkout() {
+            try {
+                const plan = workoutGenerator.generateWorkoutPlan(currentClientId);
+                backupManager.showNotification('✅ Scheda generata con successo!', 'success');
+                loadClientDetails(currentClientId);
+                updateDashboardStats(); // Aggiorna statistiche dashboard
+            } catch (error) {
+                console.error('Errore generazione:', error);
+                backupManager.showNotification('❌ Errore durante la generazione', 'error');
+            }
+        }
+
+        function approvePlan(planId) {
+            currentPlanId = planId;
+            document.getElementById('approvePlanModal').classList.add('active');
+        }
+
+        async function confirmApprovePlan() {
+            await db.approvePlan(currentPlanId);
+            closeModal('approvePlanModal');
+            backupManager.showNotification('✅ Scheda approvata e inviata al cliente!', 'success');
+            loadClientDetails(currentClientId);
+            updateDashboardStats();
+        }
+
+        // ✅ NUOVA FUNZIONE: Approva scheda SENZA inviarla
+        async function approvePlanOnly(planId) {
+            if (!confirm('Vuoi approvare questa scheda?\n\nLa scheda diventerà "Approvata" ma NON verrà ancora inviata al cliente.\nPotrai inviarla successivamente con il pulsante "INVIA AL CLIENTE".')) {
+                return;
+            }
+            
+            await db.approvePlan(planId);
+            backupManager.showNotification('✅ Scheda approvata! Usa "INVIA AL CLIENTE" per inviarla.', 'success');
+            loadClientDetails(currentClientId);
+            updateDashboardStats();
+        }
+
+        // ✅ NUOVA FUNZIONE: Invia scheda al cliente (già approvata)
+        async function sendToClient(planId) {
+            const plan = db.getAllPlans().find(p => p.id === planId);
+            if (!plan) {
+                backupManager.showNotification('❌ Scheda non trovata', 'error');
+                return;
+            }
+
+            if (plan.status !== 'attiva') {
+                backupManager.showNotification('❌ La scheda deve essere approvata prima di inviarla', 'error');
+                return;
+            }
+
+            // Simula invio al cliente (in realtà è già "attiva" e il cliente la vede)
+            if (!confirm(`Confermi l'invio della scheda "${plan.title}" al cliente?\n\nIl cliente potrà visualizzarla immediatamente nella sua app.`)) {
+                return;
+            }
+
+            // Imposta data di invio
+            plan.sent_at = new Date().toISOString();
+            await db.updatePlan(planId, plan);
+
+            backupManager.showNotification('📨 Scheda inviata al cliente con successo!', 'success');
+            loadClientDetails(currentClientId);
+        }
+
+        // SALVA MODIFICHE INLINE
+        async function savePlanChanges(planId) {
+            try {
+                // Leggi piano da cache Firebase
+                const plans = db.getAllPlans();
+                const planIndex = plans.findIndex(function(p) { return p.id === planId; });
+                
+                if (planIndex === -1) {
+                    alert('❌ Scheda non trovata');
+                    return;
+                }
+                
+                const plan = {...plans[planIndex]};
+                const sections = ['warmup', 'mobility', 'strength', 'circuit', 'cooldown'];
+                
+                sections.forEach(function(sectionKey) {
+                    const ex1Field = document.getElementById('ex_' + sectionKey + '_0_' + planId);
+                    const ex2Field = document.getElementById('ex_' + sectionKey + '_1_' + planId);
+                    const ex3Field = document.getElementById('ex_' + sectionKey + '_2_' + planId);
+                    const repsField = document.getElementById('reps_' + sectionKey + '_' + planId);
+                    const titleField = document.getElementById('title_' + sectionKey + '_' + planId);
+                    
+                    if (!repsField) return;
+                    
+                    const exerciseNames = [];
+                    if (ex1Field && ex1Field.value.trim()) exerciseNames.push(ex1Field.value.trim());
+                    if (ex2Field && ex2Field.value.trim()) exerciseNames.push(ex2Field.value.trim());
+                    if (ex3Field && ex3Field.value.trim()) exerciseNames.push(ex3Field.value.trim());
+                    
+                    const repsValue = repsField.value.trim();
+                    const titleValue = titleField ? titleField.value.trim() : '';
+                    
+                    const exercises = exerciseNames.map(function(name) {
+                        return { name: name, reps: repsValue, duration: null };
+                    });
+                    
+                    if (sectionKey === 'strength' || sectionKey === 'circuit') {
+                        plan.phases[sectionKey] = { title: titleValue || (sectionKey === 'strength' ? '💪 Rinforzo' : '⚡ Circuito'), exercises: exercises };
+                    } else {
+                        plan.phases[sectionKey] = { title: titleValue, exercises: exercises };
+                    }
+                });
+                
+                // Salva su Firebase
+                await db.updatePlan(planId, plan);
+                
+                alert('✅ Scheda salvata con successo!');
+                loadClientDetails(currentClientId);
+                
+            } catch (error) {
+                alert('❌ Errore durante il salvataggio: ' + error.message);
+            }
+        }
+
+
+        // ===== EXPORT JSON E PDF FUNCTIONS =====
+        function exportWorkoutJSON(planId) {
+            const plan = db.getAllPlans().find(p => p.id === planId);
+            if (!plan) {
+                backupManager.showNotification('❌ Scheda non trovata', 'error');
+                return;
+            }
+
+            const client = db.getClientById(plan.client_id);
+            
+            // Prepara il JSON con tutte le info necessarie
+            const exportData = {
+                version: '1.0',
+                exported_at: new Date().toISOString(),
+                client_name: client.name,
+                plan: plan
+            };
+
+            // Crea il file JSON
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            
+            // Download
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Scheda_${client.name.replace(/\s/g, '_')}_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link); // Aggiungi al DOM
+            link.click();
+            document.body.removeChild(link); // Rimuovi dal DOM
+            
+            setTimeout(() => URL.revokeObjectURL(url), 100); // Delay revoke
+            backupManager.showNotification('📤 Scheda JSON esportata! Invia al cliente via WhatsApp', 'success');
+        }
+
+        async function exportWorkoutPDF(planId) {
+            const plan = db.getAllPlans().find(p => p.id === planId);
+            if (!plan) {
+                backupManager.showNotification('❌ Scheda non trovata', 'error');
+                return;
+            }
+
+            const client = db.getClientById(plan.client_id);
+            
+            try {
+                // Carica jsPDF
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                let yPos = 15;
+                const pageWidth = doc.internal.pageSize.width;
+                const marginLeft = 15;
+                const marginRight = 15;
+                const contentWidth = pageWidth - marginLeft - marginRight;
+                
+                // ===== HEADER CON LOGO =====
+                try {
+                    const logoImg = await loadImage('images/logo.png');
+                    // Logo centrato
+                    doc.addImage(logoImg, 'PNG', pageWidth/2 - 25, yPos, 50, 50);
+                    yPos += 60;
+                } catch (e) {
+                    console.log('Logo non disponibile');
+                    yPos += 10;
+                }
+                
+                // ===== TITOLO PRINCIPALE =====
+                doc.setFontSize(24);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(30, 58, 95); // Navy
+                doc.text('SCHEDA DI ALLENAMENTO', pageWidth/2, yPos, { align: 'center' });
+                yPos += 12;
+                
+                // Linea separatrice
+                doc.setDrawColor(255, 20, 147); // Fucsia
+                doc.setLineWidth(1);
+                doc.line(marginLeft, yPos, pageWidth - marginRight, yPos);
+                yPos += 10;
+                
+                // ===== INFO CLIENTE =====
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'normal');
+                doc.setTextColor(80, 80, 80);
+                doc.text(`Cliente: ${client.name}`, marginLeft, yPos);
+                yPos += 7;
+                doc.text(`Durata: ${plan.duration} minuti | Obiettivo: ${plan.objective}`, marginLeft, yPos);
+                yPos += 12;
+                
+                // ===== FUNZIONE RENDER SEZIONE CON BOX COLORATI =====
+                const addSection = async (sectionNumber, title, exercises, color) => {
+                    if (!exercises || exercises.length === 0) return;
+                    
+                    // Controlla spazio per nuova sezione
+                    if (yPos > 240) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    
+                    // Box header sezione
+                    doc.setFillColor(color[0], color[1], color[2]);
+                    doc.roundedRect(marginLeft, yPos, contentWidth, 12, 3, 3, 'F');
+                    
+                    // Titolo sezione in bianco
+                    doc.setFontSize(14);
+                    doc.setFont(undefined, 'bold');
+                    doc.setTextColor(255, 255, 255);
+                    doc.text(`${sectionNumber}. ${title.replace(/[🔥💪🧘❄️]/g, '').trim()}`, marginLeft + 5, yPos + 8);
+                    yPos += 18;
+                    
+                    // Esercizi
+                    doc.setFontSize(11);
+                    doc.setTextColor(40, 40, 40);
+                    
+                    for (let i = 0; i < exercises.length; i++) {
+                        const ex = exercises[i];
+                        
+                        // Controlla spazio
+                        if (yPos > 260) {
+                            doc.addPage();
+                            yPos = 20;
+                        }
+                        
+                        const exerciseBoxHeight = 16;
+                        const hasImage = exerciseImageManager.hasImage(ex.name);
+                        
+                        // Box esercizio con bordo
+                        doc.setDrawColor(220, 220, 220);
+                        doc.setLineWidth(0.5);
+                        doc.rect(marginLeft, yPos, hasImage ? contentWidth - 45 : contentWidth, exerciseBoxHeight);
+                        
+                        // Nome esercizio (senza bullet)
+                        doc.setFont(undefined, 'bold');
+                        doc.text(ex.name, marginLeft + 3, yPos + 6);
+                        
+                        // Dettagli
+                        doc.setFont(undefined, 'normal');
+                        doc.setFontSize(10);
+                        doc.setTextColor(100, 100, 100);
+                        let details = [];
+                        if (ex.reps) details.push(ex.reps);
+                        if (ex.duration) details.push(ex.duration);
+                        if (details.length > 0) {
+                            doc.text(details.join(' • '), marginLeft + 3, yPos + 12);
+                        }
+                        
+                        // Immagine esercizio a destra
+                        if (hasImage) {
+                            const exerciseImage = exerciseImageManager.getImage(ex.name);
+                            try {
+                                doc.addImage(exerciseImage, 'JPEG', pageWidth - marginRight - 40, yPos + 2, 38, 38);
+                            } catch (e) {
+                                console.log('Errore caricamento immagine');
+                            }
+                        }
+                        
+                        yPos += exerciseBoxHeight + 4;
+                    }
+                    
+                    yPos += 8;
+                };
+                
+                // ===== AGGIUNGI TUTTE LE SEZIONI =====
+                let sectionNum = 1;
+                
+                // Funzione helper per estrarre exercises e title
+                function getPhaseData(phase, defaultName) {
+                    if (!phase) return { title: defaultName, exercises: [] };
+                    
+                    // Se è un array (vecchio formato)
+                    if (Array.isArray(phase)) {
+                        return { title: defaultName, exercises: phase };
+                    }
+                    
+                    // Se è un object con title e exercises (nuovo formato)
+                    return {
+                        title: phase.title || defaultName,
+                        exercises: phase.exercises || []
+                    };
+                }
+                
+                const warmupData = getPhaseData(plan.phases.warmup, 'RISCALDAMENTO');
+                if (warmupData.exercises.length > 0) {
+                    await addSection(sectionNum++, warmupData.title.toUpperCase(), warmupData.exercises, [255, 140, 0]); // Arancio
+                }
+                
+                const mobilityData = getPhaseData(plan.phases.mobility, 'MOBILITÀ');
+                if (mobilityData.exercises.length > 0) {
+                    await addSection(sectionNum++, mobilityData.title.toUpperCase(), mobilityData.exercises, [0, 206, 209]); // Cyan
+                }
+                
+                const strengthData = getPhaseData(plan.phases.strength, 'RINFORZO');
+                if (strengthData.exercises.length > 0) {
+                    await addSection(sectionNum++, strengthData.title.toUpperCase(), strengthData.exercises, [255, 20, 147]); // Fucsia
+                }
+                
+                const circuitData = getPhaseData(plan.phases.circuit, 'CIRCUITO');
+                if (circuitData.exercises.length > 0) {
+                    await addSection(sectionNum++, circuitData.title.toUpperCase(), circuitData.exercises, [139, 127, 232]); // Viola
+                }
+                
+                const cooldownData = getPhaseData(plan.phases.cooldown, 'DEFATICAMENTO');
+                if (cooldownData.exercises.length > 0) {
+                    await addSection(sectionNum++, cooldownData.title.toUpperCase(), cooldownData.exercises, [100, 181, 129]); // Verde
+                }
+                
+                // ===== FOOTER =====
+                const pageCount = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(8);
+                    doc.setTextColor(150, 150, 150);
+                    doc.text('Body & Mind Revolution - Alissa Casagrande Personal Trainer', pageWidth/2, 287, { align: 'center' });
+                    doc.text(`Pagina ${i} di ${pageCount}`, pageWidth - marginRight, 287, { align: 'right' });
+                }
+                
+                // Salva PDF
+                doc.save(`Scheda_${client.name.replace(/\s/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+                
+                backupManager.showNotification('📄 PDF esportato con successo!', 'success');
+                
+            } catch (error) {
+                console.error('Errore export PDF:', error);
+                backupManager.showNotification('❌ Errore durante l\'export PDF', 'error');
+            }
+        }
+
+        // Helper per caricare immagini
+        function loadImage(src) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = reject;
+                img.src = src;
+            });
+        }
+
+        function exportWorkout(planId) {
+            backupManager.exportWorkoutPlan(currentClientId, planId);
+        }
+
+        function exportBackup() {
+            backupManager.exportTrainerBackup();
+        }
+
+        function importBackup() {
+            document.getElementById('backupFileInput').click();
+        }
+
+        async function handleBackupImport(event) {
+            const file = event.target.files[0];
+            if (file) await backupManager.importTrainerBackup(file);
+            event.target.value = '';
+        }
+
+        function showAddClientModal() {
+            console.log('🔵 showAddClientModal chiamata');
+            
+            try {
+                const modal = document.getElementById('addClientModal');
+                const form = document.getElementById('clientForm');
+                const title = document.getElementById('clientModalTitle');
+                
+                if (!modal) {
+                    console.error('❌ Modal non trovato!');
+                    alert('Errore: Modal non trovato. Ricarica la pagina.');
+                    return;
+                }
+                
+                if (!form) {
+                    console.error('❌ Form non trovato!');
+                    alert('Errore: Form non trovato. Ricarica la pagina.');
+                    return;
+                }
+                
+                if (!title) {
+                    console.error('❌ Title non trovato!');
+                    alert('Errore: Title non trovato. Ricarica la pagina.');
+                    return;
+                }
+                
+                console.log('✅ Elementi trovati, apertura modal...');
+                
+                // Reset form
+                form.reset();
+                delete form.dataset.editingId;
+                
+                // Imposta titolo
+                title.textContent = 'Nuovo Cliente';
+                
+                // Mostra modal
+                modal.classList.add('active');
+                
+                console.log('✅ Modal aperto con successo');
+                
+            } catch (error) {
+                console.error('❌ Errore in showAddClientModal:', error);
+                alert('Errore durante l\'apertura del form: ' + error.message);
+            }
+        }
+
+        function editClient(clientId) {
+            const client = db.getClientById(clientId);
+            const profile = db.getProfileByClientId(clientId);
+            
+            if (!profile) {
+                alert('Profilo non trovato');
+                return;
+            }
+
+            document.getElementById('clientModalTitle').textContent = 'Modifica Cliente';
+            const form = document.getElementById('clientForm');
+            form.elements['name'].value = client.name;
+            form.elements['email'].value = client.email || '';
+            form.elements['age'].value = profile.age;
+            form.elements['weight'].value = profile.weight;
+            form.elements['level'].value = profile.level;
+            form.elements['goal'].value = profile.goal;
+            form.elements['style_preference'].value = profile.style_preference;
+            form.elements['duration_preference'].value = profile.duration_preference;
+            form.elements['frequency'].value = profile.frequency;
+            
+            // Pre-compila problematiche custom
+            if (profile.custom_problems) {
+                form.elements['custom_problems'].value = profile.custom_problems;
+            }
+            
+            profile.problems.forEach(p => {
+                const checkbox = form.querySelector(`input[name="problems"][value="${p}"]`);
+                if (checkbox) checkbox.checked = true;
+            });
+            
+            profile.equipment.forEach(e => {
+                const checkbox = form.querySelector(`input[name="equipment"][value="${e}"]`);
+                if (checkbox) checkbox.checked = true;
+            });
+
+            form.dataset.editingId = clientId;
+            document.getElementById('addClientModal').classList.add('active');
+        }
+
+        async function saveClient(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            
+            const problems = [];
+            formData.getAll('problems').forEach(p => problems.push(p));
+            
+            const equipment = [];
+            formData.getAll('equipment').forEach(e => equipment.push(e));
+            
+            // Ottieni problematiche custom
+            const customProblemsRaw = formData.get('custom_problems');
+            const customProblems = customProblemsRaw ? customProblemsRaw.trim() : '';
+
+            const clientData = {
+                name: formData.get('name'),
+                email: formData.get('email') || ''
+            };
+
+            const profileData = {
+                age: parseInt(formData.get('age')),
+                weight: parseInt(formData.get('weight')),
+                level: formData.get('level'),
+                problems: problems.length > 0 ? problems : ['nessuna'],
+                custom_problems: customProblems || '',
+                goal: formData.get('goal'),
+                equipment: equipment.length > 0 ? equipment : ['nessuna'],
+                duration_preference: parseInt(formData.get('duration_preference')),
+                style_preference: formData.get('style_preference'),
+                frequency: parseInt(formData.get('frequency'))
+            };
+
+            const editingId = event.target.dataset.editingId;
+            if (editingId) {
+                await db.updateClient(editingId, clientData);
+                await db.updateProfile(editingId, profileData);
+                backupManager.showNotification('✅ Cliente aggiornato!', 'success');
+                delete event.target.dataset.editingId;
+            } else {
+                const newClient = await db.addClient(clientData);
+                profileData.client_id = newClient.id;
+                await db.updateProfile(newClient.id, profileData);
+                backupManager.showNotification('✅ Cliente creato!', 'success');
+            }
+
+            closeModal('addClientModal');
+            loadClientList();
+            updateDashboardStats(); // Aggiorna statistiche dashboard
+            if (editingId) loadClientDetails(editingId);
+        }
+
+        async function archiveClientConfirm(clientId) {
+            const client = db.getClientById(clientId);
+            if (confirm(`⚠️ Archiviare "${client.name}"?\n\nIl cliente verrà spostato in "Clienti Archiviati" e potrà essere ripristinato in futuro.`)) {
+                await db.archiveClient(clientId);
+                backupManager.showNotification('📦 Cliente archiviato', 'success');
+                currentClientId = null;
+                loadClientList();
+                document.getElementById('clientDetails').innerHTML = '<p>Seleziona un cliente dalla lista</p>';
+            }
+        }
+
+        // ===== EXERCISE IMAGE UPLOAD FUNCTIONS =====
+        function uploadExerciseImage(exerciseName) {
+            // Create hidden file input
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                // Check file size (max 2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    backupManager.showNotification('❌ Immagine troppo grande (max 2MB)', 'error');
+                    return;
+                }
+                
+                try {
+                    const base64 = await exerciseImageManager.fileToBase64(file);
+                    exerciseImageManager.saveImage(exerciseName, base64);
+                    backupManager.showNotification(`✅ Immagine salvata per "${exerciseName}"`, 'success');
+                    loadClientDetails(currentClientId); // Refresh to show checkmark
+                } catch (error) {
+                    console.error('Error uploading image:', error);
+                    backupManager.showNotification('❌ Errore durante il caricamento', 'error');
+                }
+            };
+            
+            input.click();
+        }
+        
+        function removeExerciseImage(exerciseName) {
+            if (confirm(`Rimuovere l'immagine per "${exerciseName}"?`)) {
+                exerciseImageManager.removeImage(exerciseName);
+                backupManager.showNotification('🗑️ Immagine rimossa', 'info');
+                loadClientDetails(currentClientId); // Refresh
+            }
+        }
+
+        function addExerciseYouTube(exerciseName) {
+            const url = prompt(`Inserisci il link YouTube per "${exerciseName}":\n\nEsempio: https://www.youtube.com/watch?v=xxxxx`);
+            
+            if (!url) return;
+            
+            // Validazione base URL YouTube
+            if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
+                backupManager.showNotification('❌ Link non valido. Deve essere un link YouTube', 'error');
+                return;
+            }
+            
+            exerciseYouTubeLinkManager.saveLink(exerciseName, url);
+            backupManager.showNotification(`✅ Link YouTube salvato per "${exerciseName}"`, 'success');
+            loadClientDetails(currentClientId); // Refresh
+        }
+
+        function removeExerciseYouTube(exerciseName) {
+            if (confirm(`Rimuovere il link YouTube per "${exerciseName}"?`)) {
+                exerciseYouTubeLinkManager.removeLink(exerciseName);
+                backupManager.showNotification('🗑️ Link YouTube rimosso', 'info');
+                loadClientDetails(currentClientId); // Refresh
+            }
+        }
+
+        function showArchivedClients() {
+            const archived = db.getArchivedClients();
+            const list = document.getElementById('archivedList');
+            
+            if (archived.length === 0) {
+                list.innerHTML = '<p style="text-align: center; padding: 40px; color: #6b7280;">Nessun cliente archiviato</p>';
+            } else {
+                list.innerHTML = archived.map(client => `
+                    <div class="card" style="margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong style="font-size: 18px;">${client.name}</strong>
+                                <div style="font-size: 13px; color: #6b7280; margin-top: 5px;">
+                                    Archiviato il ${new Date(client.archived_at).toLocaleDateString('it-IT')}
+                                </div>
+                            </div>
+                            <button class="btn btn-success" onclick="restoreClientConfirm('${client.id}')">
+                                ♻️ Ripristina
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            document.getElementById('archivedModal').classList.add('active');
+        }
+
+        async function restoreClientConfirm(clientId) {
+            const archived = db.getArchivedClients();
+            const client = archived.find(c => c.id === clientId);
+            if (confirm(`♻️ Ripristinare "${client.name}"?\n\nIl cliente tornerà nella lista attivi.`)) {
+                await db.restoreClient(clientId);
+                backupManager.showNotification('✅ Cliente ripristinato!', 'success');
+                showArchivedClients();
+                loadClientList();
+            }
+        }
+
+        // ===== CONDIVISIONE DATI CLIENTE =====
+        function shareClientData(clientId) {
+            try {
+                const client = db.getClientById(clientId);
+                const profile = db.getProfileByClientId(clientId);
+                const plans = db.getPlansByClientId(clientId);
+                const sessions = db.getAllSessions().filter(function(s) { return s.client_id === clientId; });
+                const feedback = db.getAllFeedback().filter(function(f) { return f.client_id === clientId; });
+                
+                // Prepara dati cliente per export
+                const clientData = {
+                    version: '1.0',
+                    exported_at: new Date().toISOString(),
+                    export_type: 'single_client',
+                    client: client,
+                    profile: profile,
+                    plans: plans,
+                    sessions: sessions,
+                    feedback: feedback
+                };
+                
+                // Converti in JSON
+                const jsonString = JSON.stringify(clientData);
+                
+                // Comprimi in base64 per URL
+                let base64Data;
+                let dataUrl;
+                try {
+                    base64Data = btoa(unescape(encodeURIComponent(jsonString)));
+                    const currentUrl = window.location.href;
+                    const baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/'));
+                    dataUrl = baseUrl + '/cliente.html?import=' + base64Data;
+                } catch (e) {
+                    console.error('Errore encoding base64:', e);
+                    dataUrl = null;
+                }
+                
+                // Mostra modal
+                document.getElementById('qrCodeModal').style.display = 'block';
+                
+                // Pulisci container QR precedente
+                const qrContainer = document.getElementById('qrCodeContainer');
+                qrContainer.innerHTML = '';
+                
+                // Genera QR Code (solo se URL non troppo lungo e libreria disponibile)
+                if (dataUrl && dataUrl.length < 2900 && typeof QRCode !== 'undefined') {
+                    try {
+                        new QRCode(qrContainer, {
+                            text: dataUrl,
+                            width: 300,
+                            height: 300,
+                            colorDark: '#1B3B6F',
+                            colorLight: '#ffffff',
+                            correctLevel: QRCode.CorrectLevel.H
+                        });
+                        
+                        // Aggiungi pulsante copia link
+                        const copyBtn = document.createElement('button');
+                        copyBtn.className = 'btn btn-info';
+                        copyBtn.style.cssText = 'width: 100%; margin-top: 15px; padding: 12px;';
+                        copyBtn.innerHTML = '📋 Copia Link Diretto';
+                        copyBtn.onclick = function() {
+                            copyToClipboard(dataUrl);
+                        };
+                        qrContainer.appendChild(copyBtn);
+                    } catch (qrError) {
+                        console.error('Errore generazione QR:', qrError);
+                        qrContainer.innerHTML = '<p style="color: #f59e0b; padding: 20px; text-align: center;">⚠️ QR code non disponibile.<br>Usa il download JSON o la condivisione.</p>';
+                    }
+                } else {
+                    qrContainer.innerHTML = '<p style="color: #f59e0b; padding: 20px; text-align: center;">⚠️ Dati troppo grandi per QR code.<br>Usa il download JSON o la condivisione.</p>';
+                }
+                
+                // Pulsante download JSON (compatibilità mobile)
+                const downloadBtn = document.getElementById('downloadJsonBtn');
+                downloadBtn.onclick = function() {
+                    downloadClientJSON(jsonString, client.name);
+                };
+                
+                // Aggiungi pulsante condividi (se supportato)
+                const shareBtn = document.getElementById('shareNativeBtn');
+                if (shareBtn) {
+                    if (navigator.share) {
+                        shareBtn.style.display = 'block';
+                        shareBtn.onclick = function() {
+                            shareClientViaWebShare(jsonString, client.name);
+                        };
+                    } else {
+                        shareBtn.style.display = 'none';
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Errore condivisione:', error);
+                alert('❌ Errore durante la preparazione dei dati.\n\nDettagli: ' + error.message);
+            }
+        }
+        
+        function downloadClientJSON(jsonString, clientName) {
+            try {
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const filename = 'Cliente_' + clientName.replace(/\s+/g, '_') + '_' + new Date().toISOString().split('T')[0] + '.json';
+                
+                // iOS/Safari workaround
+                if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
+                    const reader = new FileReader();
+                    reader.onloadend = function() {
+                        const dataUrl = reader.result;
+                        const a = document.createElement('a');
+                        a.href = dataUrl;
+                        a.download = filename;
+                        a.style.display = 'none';
+                        document.body.appendChild(a);
+                        a.click();
+                        setTimeout(function() {
+                            document.body.removeChild(a);
+                        }, 100);
+                    };
+                    reader.readAsDataURL(blob);
+                } else {
+                    // Desktop e Android
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.style.display = 'none';
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(function() {
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    }, 100);
+                }
+                
+                alert('✅ File JSON salvato!\n\nInvia il file al cliente via WhatsApp/Email.');
+                
+            } catch (error) {
+                console.error('Errore download:', error);
+                // Fallback: mostra dati in textarea per copia manuale
+                showJSONInTextarea(jsonString, clientName);
+            }
+        }
+        
+        function shareClientViaWebShare(jsonString, clientName) {
+            try {
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const filename = 'Cliente_' + clientName.replace(/\s+/g, '_') + '.json';
+                const file = new File([blob], filename, { type: 'application/json' });
+                
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    navigator.share({
+                        title: 'Dati Cliente PT Flow',
+                        text: 'Ecco i tuoi dati personali per accedere all\'app PT Flow',
+                        files: [file]
+                    }).then(function() {
+                        alert('✅ Dati condivisi con successo!');
+                    }).catch(function(error) {
+                        console.error('Errore condivisione:', error);
+                    });
+                } else {
+                    alert('⚠️ Condivisione file non supportata.\nUsa il download JSON.');
+                }
+            } catch (error) {
+                console.error('Errore Web Share:', error);
+                alert('⚠️ Condivisione non disponibile.\nUsa il download JSON.');
+            }
+        }
+        
+        function copyToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function() {
+                    alert('✅ Link copiato negli appunti!\n\nInvialo al cliente via WhatsApp/Email.');
+                }).catch(function(error) {
+                    console.error('Errore copia:', error);
+                    fallbackCopyTextToClipboard(text);
+                });
+            } else {
+                fallbackCopyTextToClipboard(text);
+            }
+        }
+        
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.top = '0';
+            textArea.style.left = '0';
+            textArea.style.width = '2em';
+            textArea.style.height = '2em';
+            textArea.style.padding = '0';
+            textArea.style.border = 'none';
+            textArea.style.outline = 'none';
+            textArea.style.boxShadow = 'none';
+            textArea.style.background = 'transparent';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                alert('✅ Link copiato!\n\nIncollalo e invialo al cliente.');
+            } catch (err) {
+                console.error('Errore copia fallback:', err);
+                showJSONInTextarea(text, 'Link');
+            }
+            document.body.removeChild(textArea);
+        }
+        
+        function showJSONInTextarea(jsonString, clientName) {
+            const modal = document.getElementById('qrCodeModal');
+            const container = document.getElementById('qrCodeContainer');
+            container.innerHTML = '<div style="text-align: left;"><p style="color: #dc2626; font-weight: bold; margin-bottom: 10px;">⚠️ Download non disponibile</p><p style="margin-bottom: 10px;">Copia il testo qui sotto e salvalo in un file .json:</p><textarea id="jsonTextarea" style="width: 100%; height: 200px; font-size: 11px; font-family: monospace; padding: 10px; border: 1px solid #ccc; border-radius: 6px;" readonly></textarea><button onclick="copyJSONFromTextarea()" class="btn btn-primary" style="width: 100%; margin-top: 10px;">📋 Copia JSON</button></div>';
+            document.getElementById('jsonTextarea').value = jsonString;
+        }
+        
+        function copyJSONFromTextarea() {
+            const textarea = document.getElementById('jsonTextarea');
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                alert('✅ JSON copiato!\n\n1. Apri un editor di testo\n2. Incolla il contenuto\n3. Salva come file .json\n4. Invia il file al cliente');
+            } catch (err) {
+                alert('❌ Impossibile copiare automaticamente.\nSeleziona tutto il testo e copia manualmente.');
+            }
+        }
+        
+        // FUNZIONE PER GENERARE QR CODE SEMPRE VISIBILE (VERSIONE ULTRA-LEGGERA)
+        function generateClientQRCode(clientId) {
+            console.log('=== GENERA QR CODE ULTRA-MINIMALE ===');
+            console.log('Client ID:', clientId);
+            
+            try {
+                const client = db.getClientById(clientId);
+                console.log('Cliente trovato:', client ? client.name : 'NULL');
+                
+                const profile = db.getProfileByClientId(clientId);
+                const allPlans = db.getPlansByClientId(clientId);
+                
+                // SOLO SCHEDA ATTIVA
+                const activePlan = allPlans.find(function(p) { return p.status === 'attiva'; });
+                
+                console.log('Cliente:', client.name, '| Scheda attiva:', activePlan ? 'SÌ' : 'NO');
+                
+                // DATI ULTRA-MINIMI - SOLO ID E RIFERIMENTI (NO PHASES!)
+                const clientData = {
+                    v: '1',
+                    t: 'l',
+                    c: {
+                        i: client.id,
+                        n: client.name
+                    },
+                    p: activePlan ? {
+                        i: activePlan.id
+                        // RIMOSSO: title, duration, objective, phases
+                        // Il cliente.html li recupererà dal localStorage
+                    } : null
+                };
+                
+                // JSON compatto
+                const jsonString = JSON.stringify(clientData);
+                const base64Data = btoa(unescape(encodeURIComponent(jsonString)));
+                
+                console.log('📊 JSON:', jsonString.length, 'char | Base64:', base64Data.length, 'char');
+                
+                // Crea URL - USA DOMINIO DEPLOY OSPITATO FISSO
+                // ⚠️ IMPORTANTE: Questo è il dominio del deploy ospitato che FUNZIONA
+                const deployUrl = 'https://b137c7fa-8b5a-4a69-a28c-f8264b70736c.vip.gensparksite.com';
+                const dataUrl = deployUrl + '/cliente.html?import=' + base64Data;
+                
+                // Log per debug
+                const currentUrl = window.location.href;
+                const currentBase = currentUrl.substring(0, currentUrl.lastIndexOf('/'));
+                
+                console.log('🌐 Current URL:', currentUrl);
+                console.log('🌐 Current Base:', currentBase);
+                console.log('✅ Deploy URL (FISSO):', deployUrl);
+                console.log('🔗 Data URL completo:', dataUrl);
+                console.log('📏 URL totale lunghezza:', dataUrl.length, 'char');
+                
+                // Container QR
+                const qrContainer = document.getElementById('qrCodeClientAccess');
+                
+                if (!qrContainer) {
+                    console.error('Container QR non trovato!');
+                    return;
+                }
+                
+                qrContainer.innerHTML = '';
+                
+                // Verifica libreria e dimensione
+                console.log('typeof QRCode:', typeof QRCode);
+                
+                if (typeof QRCode === 'undefined') {
+                    console.error('❌ Libreria QRCode NON caricata!');
+                    qrContainer.innerHTML = '<p style="color: #dc2626; padding: 20px;">⚠️ Libreria QR Code non caricata.<br>Ricarica la pagina.</p>';
+                    return;
+                }
+                
+                if (dataUrl.length > 2900) {
+                    console.warn('⚠️ URL troppo lungo:', dataUrl.length, 'caratteri');
+                    qrContainer.innerHTML = '<p style="color: #f59e0b; padding: 20px; text-align: center;"><strong>⚠️ URL ancora troppo lungo</strong><br><br>Il QR include solo scheda attiva,<br>ma i dati sono ancora grandi.<br><br>Usa il pulsante "Scarica JSON" sotto<br>per dare accesso completo.</p>';
+                    return;
+                }
+                
+                // Genera QR (ridotto a 220x220 per centratura)
+                console.log('🔄 Generazione QR ULTRA-LEGGERO...');
+                try {
+                    new QRCode(qrContainer, {
+                        text: dataUrl,
+                        width: 220,
+                        height: 220,
+                        colorDark: '#EC0B88',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                    console.log('✅ QR ULTRA-MINIMALE generato! Solo ID + nome + scheda');
+                    
+                    // Aggiungi URL generato sotto il QR per debug
+                    const urlDebug = document.createElement('div');
+                    urlDebug.style.cssText = 'margin-top: 10px; padding: 10px; background: #f3f4f6; border-radius: 8px; font-size: 11px; color: #6b7280; word-break: break-all;';
+                    urlDebug.innerHTML = '<strong>🔗 URL QR:</strong><br>' + dataUrl.substring(0, 150) + '...';
+                    qrContainer.appendChild(urlDebug);
+                    
+                } catch (qrError) {
+                    console.error('❌ Errore generazione QR:', qrError);
+                    qrContainer.innerHTML = '<p style="color: #dc2626; padding: 20px;">❌ Errore generazione QR<br>Usa il pulsante "Scarica JSON".</p>';
+                }
+                
+            } catch (error) {
+                console.error('Errore preparazione QR:', error);
+                const qrContainer = document.getElementById('qrCodeClientAccess');
+                if (qrContainer) {
+                    qrContainer.innerHTML = '<p style="color: #dc2626; padding: 20px;">❌ Errore: ' + error.message + '</p>';
+                }
+            }
+        }
+        
+        // FUNZIONE DOWNLOAD JSON DIRETTA
+        function downloadClientJSONDirect(clientId) {
+            try {
+                const client = db.getClientById(clientId);
+                const profile = db.getProfileByClientId(clientId);
+                const plans = db.getPlansByClientId(clientId);
+                const sessions = db.getAllSessions().filter(function(s) { return s.client_id === clientId; });
+                const feedback = db.getAllFeedback().filter(function(f) { return f.client_id === clientId; });
+                
+                const clientData = {
+                    version: '1.0',
+                    exported_at: new Date().toISOString(),
+                    export_type: 'single_client',
+                    client: client,
+                    profile: profile,
+                    plans: plans,
+                    sessions: sessions,
+                    feedback: feedback
+                };
+                
+                const jsonString = JSON.stringify(clientData);
+                downloadClientJSON(jsonString, client.name);
+                
+            } catch (error) {
+                console.error('Errore download:', error);
+                alert('❌ Errore durante il download.\n\n' + error.message);
+            }
+        }
+        
+        // FUNZIONE PER ESPORTARE SCHEDA IN CSV
+        function downloadClientCSV(clientId) {
+            console.log('📊 downloadClientCSV chiamata con ID:', clientId);
+            
+            try {
+                const client = db.getClientById(clientId);
+                if (!client) {
+                    alert('❌ Cliente non trovato!');
+                    return;
+                }
+                
+                const allPlans = db.getPlansByClientId(clientId);
+                const activePlan = allPlans.find(function(p) { return p.status === 'attiva'; });
+                
+                if (!activePlan) {
+                    alert('⚠️ Nessuna scheda attiva trovata per questo cliente.');
+                    return;
+                }
+                
+                console.log('📋 Generazione CSV per scheda:', activePlan.title);
+                
+                // Header CSV
+                let csv = 'Fase,Esercizio,Ripetizioni/Durata\n';
+                
+                // Funzione helper per estrarre exercises e title
+                function getPhaseData(phase, defaultName) {
+                    if (!phase) return { title: defaultName, exercises: [] };
+                    
+                    // Se è un array (vecchio formato)
+                    if (Array.isArray(phase)) {
+                        return { title: defaultName, exercises: phase };
+                    }
+                    
+                    // Se è un object con title e exercises (nuovo formato)
+                    return {
+                        title: phase.title || defaultName,
+                        exercises: phase.exercises || []
+                    };
+                }
+                
+                // Aggiungi esercizi per fase
+                const phases = [
+                    getPhaseData(activePlan.phases.warmup, 'Riscaldamento'),
+                    getPhaseData(activePlan.phases.mobility, 'Mobilità'),
+                    getPhaseData(activePlan.phases.strength, 'Rinforzo'),
+                    getPhaseData(activePlan.phases.circuit, 'Circuito'),
+                    getPhaseData(activePlan.phases.cooldown, 'Defaticamento')
+                ];
+                
+                phases.forEach(function(phase) {
+                    if (phase.exercises && phase.exercises.length > 0) {
+                        phase.exercises.forEach(function(ex) {
+                            const name = (ex.name || '').replace(/"/g, '""'); // Escape quotes
+                            const reps = (ex.reps || ex.duration || '').replace(/"/g, '""');
+                            // Usa il titolo custom (o default)
+                            const phaseName = phase.title.replace(/"/g, '""');
+                            csv += `"${phaseName}","${name}","${reps}"\n`;
+                        });
+                    }
+                });
+                
+                // Crea Blob e download
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                const filename = 'Scheda_' + client.name.replace(/\s+/g, '_') + '_' + 
+                    new Date().toISOString().split('T')[0] + '.csv';
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                
+                console.log('✅ CSV scaricato:', filename);
+                alert('✅ CSV esportato con successo!\n\nFile: ' + filename);
+                
+            } catch (error) {
+                console.error('❌ Errore export CSV:', error);
+                alert('❌ Errore durante export CSV:\n\n' + error.message);
+            }
+        }
+        
+        // FUNZIONE PER GENERARE PDF CON QR CODE
+        function downloadQRCodePDF(clientId) {
+            console.log('🔥 downloadQRCodePDF chiamata con ID:', clientId);
+            
+            try {
+                console.log('📄 Generazione PDF con QR Code...');
+                
+                const client = db.getClientById(clientId);
+                console.log('Cliente:', client ? client.name : 'NON TROVATO');
+                
+                if (!client) {
+                    alert('❌ Cliente non trovato!');
+                    return;
+                }
+                
+                const profile = db.getProfileByClientId(clientId);
+                const allPlans = db.getPlansByClientId(clientId);
+                const activePlan = allPlans.find(function(p) { return p.status === 'attiva'; });
+                
+                console.log('Scheda attiva:', activePlan ? activePlan.title : 'Nessuna');
+                
+                // Prepara dati minimali per QR - SOLO ID!
+                const clientData = {
+                    v: '1',
+                    t: 'l',
+                    c: {
+                        i: client.id,
+                        n: client.name
+                    },
+                    p: activePlan ? {
+                        i: activePlan.id
+                        // RIMOSSO title, duration, objective, phases per ridurre dimensioni
+                    } : null
+                };
+                
+                const jsonString = JSON.stringify(clientData);
+                const base64Data = btoa(unescape(encodeURIComponent(jsonString)));
+                const currentUrl = window.location.href;
+                const baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/'));
+                const dataUrl = baseUrl + '/cliente.html?import=' + base64Data;
+                
+                console.log('📊 URL QR:', dataUrl.length, 'caratteri');
+                console.log('🔧 Creazione QR temporaneo...');
+                
+                // Verifica libreria QRCode
+                if (typeof QRCode === 'undefined') {
+                    alert('❌ Libreria QRCode non caricata!\n\nRicarica la pagina.');
+                    return;
+                }
+                
+                // Genera QR temporaneo per il PDF
+                const tempDiv = document.createElement('div');
+                tempDiv.style.display = 'none';
+                document.body.appendChild(tempDiv);
+                
+                console.log('🎨 Generazione QR con CANVAS...');
+                
+                // Crea QR code usando canvas (non img)
+                const qrCode = new QRCode(tempDiv, {
+                    text: dataUrl,
+                    width: 400,
+                    height: 400,
+                    colorDark: '#EC0B88',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+                
+                console.log('⏳ Attendo generazione QR...');
+                
+                // Aspetta che il QR si generi
+                setTimeout(function() {
+                    console.log('✅ QR generato, converto in immagine...');
+                    
+                    try {
+                        // Prendi il CANVAS del QR (priorità) o IMG
+                        const qrCanvas = tempDiv.querySelector('canvas');
+                        const qrImage = tempDiv.querySelector('img');
+                        
+                        console.log('🖼️ Canvas trovato:', qrCanvas ? 'SÌ' : 'NO');
+                        console.log('🖼️ Image trovata:', qrImage ? 'SÌ' : 'NO');
+                        
+                        let qrDataUrl;
+                        
+                        if (qrCanvas) {
+                            // Usa CANVAS (metodo migliore)
+                            qrDataUrl = qrCanvas.toDataURL('image/png');
+                            console.log('✅ QR convertito da CANVAS');
+                        } else if (qrImage) {
+                            // Fallback a IMG
+                            qrDataUrl = qrImage.src;
+                            console.log('✅ QR preso da IMG (fallback)');
+                        } else {
+                            throw new Error('QR code non generato - né canvas né img trovati');
+                        }
+                        
+                        console.log('📷 Data URL QR lunghezza:', qrDataUrl ? qrDataUrl.length : 'undefined');
+                        console.log('📷 Data URL QR inizio:', qrDataUrl ? qrDataUrl.substring(0, 50) : 'undefined');
+                        
+                        // VALIDAZIONE CRITICA: verifica qrDataUrl
+                        if (!qrDataUrl) {
+                            throw new Error('qrDataUrl è undefined/null!');
+                        }
+                        
+                        if (!qrDataUrl.startsWith('data:image')) {
+                            throw new Error('qrDataUrl non è un data URL valido: ' + qrDataUrl.substring(0, 30));
+                        }
+                        
+                        console.log('✅ qrDataUrl validato correttamente');
+                        
+                        // Verifica jsPDF
+                        if (typeof window.jspdf === 'undefined') {
+                            throw new Error('Libreria jsPDF non caricata');
+                        }
+                        
+                        console.log('📄 Creazione PDF...');
+                        
+                        // Crea PDF
+                        const { jsPDF } = window.jspdf;
+                        const doc = new jsPDF();
+                        
+                        console.log('✅ jsPDF istanziato');
+                        
+                        // Logo (se esiste)
+                        const logo = document.querySelector('img[src*="logo"]');
+                        if (logo && logo.complete) {
+                            try {
+                                doc.addImage(logo.src, 'PNG', 85, 10, 40, 40);
+                            } catch (e) {
+                                console.warn('Logo non aggiunto:', e);
+                            }
+                        }
+                        
+                        // Titolo
+                        doc.setFontSize(24);
+                        doc.setTextColor(27, 59, 111);
+                        doc.setFont(undefined, 'bold');
+                        doc.text('ACCESSO CLIENTE', 105, 60, null, null, 'center');
+                        
+                        // Nome cliente
+                        doc.setFontSize(18);
+                        doc.setTextColor(236, 11, 136);
+                        doc.text(client.name, 105, 75, null, null, 'center');
+                        
+                        // Linea separatore
+                        doc.setDrawColor(236, 11, 136);
+                        doc.setLineWidth(1);
+                        doc.line(20, 80, 190, 80);
+                        
+                        console.log('🖼️ Aggiunta QR al PDF...');
+                        
+                        // QR Code (grande e centrato) - CON TRY-CATCH
+                        try {
+                            doc.addImage(qrDataUrl, 'PNG', 55, 90, 100, 100);
+                            console.log('✅ QR aggiunto al PDF con successo!');
+                        } catch (addImageError) {
+                            console.error('❌ Errore addImage:', addImageError);
+                            console.error('❌ qrDataUrl era:', qrDataUrl ? qrDataUrl.substring(0, 100) : 'undefined');
+                            throw new Error('Impossibile aggiungere QR al PDF: ' + addImageError.message);
+                        }
+                        
+                        // Istruzioni
+                        doc.setFontSize(12);
+                        doc.setTextColor(0, 0, 0);
+                        doc.setFont(undefined, 'bold');
+                        doc.text('Come accedere:', 20, 205);
+                        
+                        doc.setFont(undefined, 'normal');
+                        doc.setFontSize(11);
+                        doc.text('1. Apri la fotocamera del tuo smartphone', 25, 215);
+                        doc.text('2. Inquadra il QR code qui sopra', 25, 222);
+                        doc.text('3. Click sul link che appare', 25, 229);
+                        doc.text('4. Inserisci il tuo Nome e Cognome', 25, 236);
+                        doc.text('5. Accedi alla tua area personale!', 25, 243);
+                        
+                        // Info scheda attiva
+                        if (activePlan) {
+                            doc.setFontSize(10);
+                            doc.setTextColor(100, 100, 100);
+                            doc.text('Scheda attiva: ' + activePlan.title, 105, 260, null, null, 'center');
+                            doc.text('Durata: ' + activePlan.duration + ' | Obiettivo: ' + activePlan.objective, 105, 267, null, null, 'center');
+                        }
+                        
+                        // Footer
+                        doc.setFontSize(9);
+                        doc.setTextColor(150, 150, 150);
+                        doc.text('Body & Mind Revolution - Alissa Casagrande Personal Trainer', 105, 285, null, null, 'center');
+                        
+                        console.log('💾 Salvataggio PDF...');
+                        
+                        // Salva PDF
+                        const filename = 'Accesso_' + client.name.replace(/\s+/g, '_') + '_QR.pdf';
+                        console.log('📁 Nome file:', filename);
+                        
+                        doc.save(filename);
+                        
+                        // Pulisci
+                        document.body.removeChild(tempDiv);
+                        
+                        console.log('✅ PDF generato con successo!');
+                        alert('✅ PDF generato con successo!\n\nFile: ' + filename + '\n\nInvia il PDF al cliente via WhatsApp!');
+                        
+                    } catch (pdfError) {
+                        console.error('❌ Errore creazione PDF:', pdfError);
+                        if (tempDiv && tempDiv.parentNode) {
+                            document.body.removeChild(tempDiv);
+                        }
+                        alert('❌ Errore creazione PDF:\n\n' + pdfError.message + '\n\nApri Console (F12) per dettagli.');
+                    }
+                }, 2000); // Aumentato timeout a 2 secondi
+                
+            } catch (error) {
+                console.error('❌ Errore generale PDF:', error);
+                alert('❌ Errore generazione PDF:\n\n' + error.message + '\n\nDettagli in console (F12)');
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+    </script>
+</body>
+</html>
